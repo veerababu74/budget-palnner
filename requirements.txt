@@ -4,7 +4,7 @@ jinja2
 python-multipart
 sqlalchemy
 python-jose[cryptography]
-passlib[bcrypt]
+passlib[bcrypt]==1.7.4
 aiofiles
 pandas
 openpyxl
