@@ -149,6 +149,279 @@ body {
     }
 
     .btn {
+        font-size: 16px;
+        padding: 12px 20px;
+        margin-bottom: 8px;
+    }
+
+    /* Container and spacing fixes */
+    .container-fluid {
+        padding-left: 8px !important;
+        padding-right: 8px !important;
+    }
+
+    .row {
+        margin-left: -4px !important;
+        margin-right: -4px !important;
+    }
+
+    .col, .col-12, .col-md-6, .col-md-4, .col-md-3, .col-md-8, .col-lg-6, .col-lg-4 {
+        padding-left: 4px !important;
+        padding-right: 4px !important;
+        margin-bottom: 12px !important;
+    }
+
+    /* Card improvements */
+    .card {
+        margin-bottom: 12px !important;
+        border-radius: 12px !important;
+    }
+
+    .card-body {
+        padding: 12px !important;
+    }
+
+    .card-header {
+        padding: 12px 16px !important;
+        font-size: 0.95rem !important;
+    }
+
+    /* Table mobile responsiveness */
+    .table-responsive {
+        font-size: 0.8rem !important;
+        border-radius: 8px;
+        margin: 0 -4px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .table {
+        margin-bottom: 0 !important;
+        min-width: 600px; /* Ensure table doesn't get too compressed */
+    }
+
+    .table th,
+    .table td {
+        padding: 8px 4px !important;
+        vertical-align: middle !important;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        max-width: 120px;
+        overflow: hidden;
+    }
+
+    .table th {
+        font-size: 0.75rem !important;
+        font-weight: 600 !important;
+        background-color: #f8f9fa !important;
+    }
+
+    .table td {
+        font-size: 0.8rem !important;
+    }
+
+    /* Action buttons in tables */
+    .table .btn {
+        padding: 4px 8px !important;
+        font-size: 0.75rem !important;
+        margin: 2px !important;
+    }
+
+    /* Input groups mobile friendly */
+    .input-group {
+        margin-bottom: 12px !important;
+    }
+
+    .input-group-text {
+        min-width: 40px !important;
+        font-size: 14px !important;
+        padding: 8px !important;
+    }
+
+    .input-group .form-control {
+        font-size: 14px !important;
+        padding: 8px 12px !important;
+    }
+
+    /* Form row improvements */
+    .form-row .col,
+    .row .col {
+        margin-bottom: 8px !important;
+    }
+
+    /* Summary section mobile */
+    .summary-section {
+        margin: 8px 0 !important;
+        padding: 12px !important;
+    }
+
+    .summary-card {
+        margin-bottom: 8px !important;
+        padding: 12px !important;
+    }
+
+    .summary-card h5 {
+        font-size: 1rem !important;
+        margin-bottom: 8px !important;
+    }
+
+    .summary-card .text-primary,
+    .summary-card .text-danger,
+    .summary-card .text-success {
+        font-size: 1.1rem !important;
+        font-weight: 600 !important;
+    }
+
+    /* Modal improvements for mobile */
+    .modal-dialog {
+        margin: 8px !important;
+        max-width: calc(100% - 16px) !important;
+    }
+
+    .modal-content {
+        border-radius: 12px !important;
+    }
+
+    .modal-header {
+        padding: 12px 16px !important;
+    }
+
+    .modal-body {
+        padding: 16px !important;
+    }
+
+    .modal-footer {
+        padding: 12px 16px !important;
+    }
+
+    /* Navigation improvements */
+    .navbar {
+        padding: 8px 16px !important;
+    }
+
+    .navbar-brand {
+        font-size: 1.1rem !important;
+    }
+
+    .nav-link {
+        padding: 8px 12px !important;
+        font-size: 0.9rem !important;
+    }
+
+    /* Dashboard stats mobile */
+    .stats-card .card-body {
+        text-align: center !important;
+        padding: 16px 12px !important;
+    }
+
+    .stats-icon {
+        width: 50px !important;
+        height: 50px !important;
+        font-size: 1.8rem !important;
+        margin: 0 auto 8px auto !important;
+        display: block !important;
+    }
+
+    .stats-content h3 {
+        font-size: 1.2rem !important;
+        margin-bottom: 4px !important;
+    }
+
+    .stats-content p {
+        font-size: 0.85rem !important;
+        margin-bottom: 0 !important;
+    }
+
+    /* Chart improvements */
+    .chart-card canvas {
+        max-height: 250px !important;
+    }
+
+    /* Button groups */
+    .btn-group {
+        flex-direction: column !important;
+        width: 100% !important;
+    }
+
+    .btn-group .btn {
+        border-radius: 8px !important;
+        margin-bottom: 4px !important;
+    }
+
+    /* Alert improvements */
+    .alert {
+        padding: 12px !important;
+        margin-bottom: 12px !important;
+        font-size: 0.9rem !important;
+    }
+
+    /* Dropdown improvements */
+    .dropdown-menu {
+        font-size: 0.9rem !important;
+        border-radius: 8px !important;
+    }
+
+    .dropdown-item {
+        padding: 8px 16px !important;
+    }
+
+    /* Text truncation for long content */
+    .text-truncate-mobile {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        max-width: 150px;
+    }
+
+    /* Export section mobile */
+    .export-controls {
+        margin-bottom: 16px !important;
+    }
+
+    .export-controls .form-select,
+    .export-controls .btn {
+        margin-bottom: 8px !important;
+        width: 100% !important;
+    }
+
+    /* Variable budget mobile fixes */
+    .variable-expense-item {
+        padding: 12px !important;
+        margin-bottom: 8px !important;
+        border-radius: 8px !important;
+    }
+
+    .expense-amount {
+        font-size: 1rem !important;
+        font-weight: 600 !important;
+    }
+
+    .expense-category {
+        font-size: 0.8rem !important;
+    }
+
+    /* Bucket list mobile */
+    .bucket-item {
+        padding: 12px !important;
+        margin-bottom: 8px !important;
+    }
+
+    .bucket-price {
+        font-size: 1rem !important;
+        font-weight: 600 !important;
+    }
+
+    /* Overflow scrolling for wide content */
+    .table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        margin: 0 -8px;
+        padding: 0 8px;
+    }
+
+}
+
+    .btn {
         font-size: 0.9rem;
         padding: 12px 16px;
         min-height: 44px;
