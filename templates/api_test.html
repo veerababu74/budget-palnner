@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API Test</title>
+</head>
+<body>
+    <h1>Testing Chart Data API</h1>
+    <div id="result"></div>
+    
+    <script>
+    async function testAPI() {
+        try {
+            console.log('Fetching data...');
+            const response = await fetch('/api/chart-data');
+            console.log('Response status:', response.status);
+            
+            if (response.ok) {
+                const data = await response.json();
+                console.log('Data received:', data);
+                
+                document.getElementById('result').innerHTML = `
+                    <h2>API Response:</h2>
+                    <p>Months: ${data.months ? data.months.length : 0}</p>
+                    <p>Has savings: ${!!data.savings}</p>
+                    <p>SIP entries: ${data.savings?.sip?.length || 0}</p>
+                    <p>Fixed Deposit entries: ${data.savings?.fixed_deposit_one?.length || 0}</p>
+                    <p>ETF entries: ${data.savings?.etf?.length || 0}</p>
+                    <p>Total entries: ${data.savings?.total?.length || 0}</p>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+            } else {
+                document.getElementById('result').innerHTML = `<p>Error: ${response.status}</p>`;
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            document.getElementById('result').innerHTML = `<p>Error: ${error.message}</p>`;
+        }
+    }
+    
+    testAPI();
+    </script>
+</body>
+</html>

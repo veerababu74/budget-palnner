@@ -93,6 +93,12 @@ class BudgetEntry(Base):
     travel = Column(Float, default=0.0)
     other_expenses = Column(Float, default=0.0)
 
+    # Savings/Investments
+    sip = Column(Float, default=0.0)
+    fixed_deposit_one = Column(Float, default=0.0)
+    fixed_deposit_two = Column(Float, default=0.0)
+    etf = Column(Float, default=0.0)
+
     created_at = Column(DateTime, default=datetime.now)
 
 
@@ -436,6 +442,10 @@ async def save_budget(
     shopping: float = Form(0.0),
     travel: float = Form(0.0),
     other_expenses: float = Form(0.0),
+    sip: float = Form(0.0),
+    fixed_deposit_one: float = Form(0.0),
+    fixed_deposit_two: float = Form(0.0),
+    etf: float = Form(0.0),
     confirm_overwrite: str = Form(""),
     db: Session = Depends(get_db),
 ):
@@ -492,6 +502,10 @@ async def save_budget(
                     "shopping": shopping,
                     "travel": travel,
                     "other_expenses": other_expenses,
+                    "sip": sip,
+                    "fixed_deposit_one": fixed_deposit_one,
+                    "fixed_deposit_two": fixed_deposit_two,
+                    "etf": etf,
                 },
             },
         )
@@ -514,6 +528,10 @@ async def save_budget(
         existing_entry.shopping = shopping
         existing_entry.travel = travel
         existing_entry.other_expenses = other_expenses
+        existing_entry.sip = sip
+        existing_entry.fixed_deposit_one = fixed_deposit_one
+        existing_entry.fixed_deposit_two = fixed_deposit_two
+        existing_entry.etf = etf
     else:
         # Create new entry
         budget_entry = BudgetEntry(
@@ -536,6 +554,10 @@ async def save_budget(
             shopping=shopping,
             travel=travel,
             other_expenses=other_expenses,
+            sip=sip,
+            fixed_deposit_one=fixed_deposit_one,
+            fixed_deposit_two=fixed_deposit_two,
+            etf=etf,
         )
         db.add(budget_entry)
 
@@ -595,6 +617,10 @@ async def update_budget(
     shopping: float = Form(0.0),
     travel: float = Form(0.0),
     other_expenses: float = Form(0.0),
+    sip: float = Form(0.0),
+    fixed_deposit_one: float = Form(0.0),
+    fixed_deposit_two: float = Form(0.0),
+    etf: float = Form(0.0),
     db: Session = Depends(get_db),
 ):
     current_user = get_current_user(request, db)
@@ -628,6 +654,10 @@ async def update_budget(
     entry.shopping = shopping
     entry.travel = travel
     entry.other_expenses = other_expenses
+    entry.sip = sip
+    entry.fixed_deposit_one = fixed_deposit_one
+    entry.fixed_deposit_two = fixed_deposit_two
+    entry.etf = etf
 
     db.commit()
     return RedirectResponse("/budget", status_code=302)
@@ -730,6 +760,13 @@ async def get_chart_data(
             "other_expenses": [],
             "total": [],
         },
+        "savings": {
+            "sip": [],
+            "fixed_deposit_one": [],
+            "fixed_deposit_two": [],
+            "etf": [],
+            "total": [],
+        },
     }
 
     for entry in entries:
@@ -775,7 +812,62 @@ async def get_chart_data(
         )
         chart_data["expenses"]["total"].append(total_expenses)
 
+        # Savings data
+        chart_data["savings"]["sip"].append(entry.sip)
+        chart_data["savings"]["fixed_deposit_one"].append(entry.fixed_deposit_one)
+        chart_data["savings"]["fixed_deposit_two"].append(entry.fixed_deposit_two)
+        chart_data["savings"]["etf"].append(entry.etf)
+
+        total_savings = (
+            entry.sip + entry.fixed_deposit_one + entry.fixed_deposit_two + entry.etf
+        )
+        chart_data["savings"]["total"].append(total_savings)
+
     return chart_data
+
+
+@app.get("/api-test", response_class=HTMLResponse)
+async def api_test_page(request: Request):
+    return templates.TemplateResponse("api_test.html", {"request": request})
+
+
+@app.get("/savings-dashboard", response_class=HTMLResponse)
+async def savings_dashboard(request: Request, db: Session = Depends(get_db)):
+    current_user = get_current_user(request, db)
+    if not current_user:
+        return RedirectResponse(url="/login", status_code=status.HTTP_302_FOUND)
+
+    # Get current month for display
+    current_month = datetime.now().strftime("%B %Y")
+
+    # Check if user has any budget entries
+    entries_count = (
+        db.query(BudgetEntry).filter(BudgetEntry.user_id == current_user.id).count()
+    )
+
+    # Check if user has any savings/investment data
+    savings_entries = (
+        db.query(BudgetEntry)
+        .filter(
+            BudgetEntry.user_id == current_user.id,
+            (BudgetEntry.sip > 0)
+            | (BudgetEntry.fixed_deposit_one > 0)
+            | (BudgetEntry.fixed_deposit_two > 0)
+            | (BudgetEntry.etf > 0),
+        )
+        .count()
+    )
+
+    return templates.TemplateResponse(
+        "savings_dashboard.html",
+        {
+            "request": request,
+            "user": current_user,
+            "current_month": current_month,
+            "entries_count": entries_count,
+            "savings_entries": savings_entries,
+        },
+    )
 
 
 # Variable Budget Routes
@@ -1256,7 +1348,8 @@ async def get_yearly_chart_data(
         "monthly_totals": {
             "income": [],
             "expenses": [],
-            "savings": [],
+            "investments": [],
+            "budget_balance": [],
         },
         "income_breakdown": {
             "salary": [],
@@ -1274,11 +1367,18 @@ async def get_yearly_chart_data(
             "travel": [],
             "other_expenses": [],
         },
+        "investment_breakdown": {
+            "sip": [],
+            "fixed_deposit_one": [],
+            "fixed_deposit_two": [],
+            "etf": [],
+        },
         "monthly_comparison": {
             "months": [],
             "income": [],
             "expenses": [],
-            "savings": [],
+            "investments": [],
+            "budget_balance": [],
         },
     }
 
@@ -1309,12 +1409,21 @@ async def get_yearly_chart_data(
                 + entry.travel
                 + entry.other_expenses
             )
-            total_savings = total_income - total_expenses
+            # Calculate actual investments/savings (only SIP, FD, ETF)
+            total_investments = (
+                entry.sip
+                + entry.fixed_deposit_one
+                + entry.fixed_deposit_two
+                + entry.etf
+            )
+            # Calculate remaining budget balance (not savings)
+            budget_balance = total_income - total_expenses - total_investments
 
             # Monthly totals
             yearly_data["monthly_totals"]["income"].append(total_income)
             yearly_data["monthly_totals"]["expenses"].append(total_expenses)
-            yearly_data["monthly_totals"]["savings"].append(total_savings)
+            yearly_data["monthly_totals"]["investments"].append(total_investments)
+            yearly_data["monthly_totals"]["budget_balance"].append(budget_balance)
 
             # Income breakdown
             yearly_data["income_breakdown"]["salary"].append(entry.salary)
@@ -1344,25 +1453,41 @@ async def get_yearly_chart_data(
                 entry.other_expenses
             )
 
+            # Investment breakdown
+            yearly_data["investment_breakdown"]["sip"].append(entry.sip)
+            yearly_data["investment_breakdown"]["fixed_deposit_one"].append(
+                entry.fixed_deposit_one
+            )
+            yearly_data["investment_breakdown"]["fixed_deposit_two"].append(
+                entry.fixed_deposit_two
+            )
+            yearly_data["investment_breakdown"]["etf"].append(entry.etf)
+
             # Monthly comparison data
             yearly_data["monthly_comparison"]["months"].append(
                 month[:3]
             )  # Short month name
             yearly_data["monthly_comparison"]["income"].append(total_income)
             yearly_data["monthly_comparison"]["expenses"].append(total_expenses)
-            yearly_data["monthly_comparison"]["savings"].append(total_savings)
+            yearly_data["monthly_comparison"]["investments"].append(total_investments)
+            yearly_data["monthly_comparison"]["budget_balance"].append(budget_balance)
 
     # Calculate year summary
     yearly_data["summary"] = {
         "total_income": sum(yearly_data["monthly_totals"]["income"]),
         "total_expenses": sum(yearly_data["monthly_totals"]["expenses"]),
-        "total_savings": sum(yearly_data["monthly_totals"]["savings"]),
+        "total_investments": sum(yearly_data["monthly_totals"]["investments"]),
+        "total_budget_balance": sum(yearly_data["monthly_totals"]["budget_balance"]),
         "average_monthly_income": sum(yearly_data["monthly_totals"]["income"])
         / max(len(yearly_data["monthly_totals"]["income"]), 1),
         "average_monthly_expenses": sum(yearly_data["monthly_totals"]["expenses"])
         / max(len(yearly_data["monthly_totals"]["expenses"]), 1),
-        "average_monthly_savings": sum(yearly_data["monthly_totals"]["savings"])
-        / max(len(yearly_data["monthly_totals"]["savings"]), 1),
+        "average_monthly_investments": sum(yearly_data["monthly_totals"]["investments"])
+        / max(len(yearly_data["monthly_totals"]["investments"]), 1),
+        "average_monthly_budget_balance": sum(
+            yearly_data["monthly_totals"]["budget_balance"]
+        )
+        / max(len(yearly_data["monthly_totals"]["budget_balance"]), 1),
         "months_with_data": len(yearly_data["months"]),
     }
 
@@ -1485,10 +1610,15 @@ async def get_monthly_analysis_data(
         + entry.travel
         + entry.other_expenses
     )
-    current_savings = current_income - current_expenses
+    # Calculate actual investments (only SIP, FD, ETF)
+    current_investments = (
+        entry.sip + entry.fixed_deposit_one + entry.fixed_deposit_two + entry.etf
+    )
+    # Calculate budget balance (remaining after expenses and investments)
+    current_budget_balance = current_income - current_expenses - current_investments
 
     # Calculate previous month totals if available
-    prev_income = prev_expenses = prev_savings = 0
+    prev_income = prev_expenses = prev_investments = prev_budget_balance = 0
     if prev_entry:
         prev_income = (
             prev_entry.salary + prev_entry.freelancing_one + prev_entry.freelancing_two
@@ -1508,7 +1638,13 @@ async def get_monthly_analysis_data(
             + prev_entry.travel
             + prev_entry.other_expenses
         )
-        prev_savings = prev_income - prev_expenses
+        prev_investments = (
+            prev_entry.sip
+            + prev_entry.fixed_deposit_one
+            + prev_entry.fixed_deposit_two
+            + prev_entry.etf
+        )
+        prev_budget_balance = prev_income - prev_expenses - prev_investments
 
     # Get year-to-date data for context
     ytd_entries = (
@@ -1536,7 +1672,10 @@ async def get_monthly_analysis_data(
         + e.other_expenses
         for e in ytd_entries
     )
-    ytd_savings = ytd_income - ytd_expenses
+    ytd_investments = sum(
+        e.sip + e.fixed_deposit_one + e.fixed_deposit_two + e.etf for e in ytd_entries
+    )
+    ytd_budget_balance = ytd_income - ytd_expenses - ytd_investments
 
     monthly_data = {
         "month": month,
@@ -1570,24 +1709,33 @@ async def get_monthly_analysis_data(
                 "creditcard_total": entry.creditcard_one + entry.creditcard_two,
                 "utilities_total": entry.mobile_recharge + entry.wifi,
             },
-            "savings": current_savings,
+            "investments": {
+                "sip": entry.sip,
+                "fixed_deposit_one": entry.fixed_deposit_one,
+                "fixed_deposit_two": entry.fixed_deposit_two,
+                "etf": entry.etf,
+                "total": current_investments,
+            },
+            "budget_balance": current_budget_balance,
         },
         "previous": {
             "month": prev_month,
             "year": prev_year,
             "income": prev_income,
             "expenses": prev_expenses,
-            "savings": prev_savings,
+            "investments": prev_investments,
+            "budget_balance": prev_budget_balance,
             "has_data": prev_entry is not None,
         },
         "year_to_date": {
             "income": ytd_income,
             "expenses": ytd_expenses,
-            "savings": ytd_savings,
+            "investments": ytd_investments,
+            "budget_balance": ytd_budget_balance,
             "months_count": len(ytd_entries),
             "avg_monthly_income": ytd_income / max(len(ytd_entries), 1),
             "avg_monthly_expenses": ytd_expenses / max(len(ytd_entries), 1),
-            "avg_monthly_savings": ytd_savings / max(len(ytd_entries), 1),
+            "avg_monthly_investments": ytd_investments / max(len(ytd_entries), 1),
         },
         "comparisons": {
             "income_change": current_income - prev_income if prev_entry else 0,
@@ -1602,19 +1750,26 @@ async def get_monthly_analysis_data(
                 if prev_entry and prev_expenses > 0
                 else 0
             ),
-            "savings_change": current_savings - prev_savings if prev_entry else 0,
-            "savings_change_percent": (
-                ((current_savings - prev_savings) / prev_savings * 100)
-                if prev_entry and prev_savings != 0
+            "investments_change": (
+                current_investments - prev_investments if prev_entry else 0
+            ),
+            "investments_change_percent": (
+                ((current_investments - prev_investments) / prev_investments * 100)
+                if prev_entry and prev_investments != 0
                 else 0
+            ),
+            "budget_balance_change": (
+                current_budget_balance - prev_budget_balance if prev_entry else 0
             ),
         },
         "analytics": {
             "expense_to_income_ratio": (
                 (current_expenses / current_income * 100) if current_income > 0 else 0
             ),
-            "savings_rate": (
-                (current_savings / current_income * 100) if current_income > 0 else 0
+            "investment_rate": (
+                (current_investments / current_income * 100)
+                if current_income > 0
+                else 0
             ),
             "largest_expense_category": max(
                 [

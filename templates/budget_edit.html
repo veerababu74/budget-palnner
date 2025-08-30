@@ -180,6 +180,46 @@
                         </div>
                     </div>
                     
+                    <!-- Savings & Investments Section -->
+                    <div class="section-header">
+                        <h6><i class="fas fa-piggy-bank me-2"></i>Savings & Investments</h6>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <label for="sip" class="form-label">SIP Investment</label>
+                            <div class="input-group">
+                                <span class="input-group-text">₹</span>
+                                <input type="number" class="form-control" id="sip" name="sip" 
+                                       step="0.01" min="0" value="{{ entry.sip }}">
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label for="fixed_deposit_one" class="form-label">Fixed Deposit 1</label>
+                            <div class="input-group">
+                                <span class="input-group-text">₹</span>
+                                <input type="number" class="form-control" id="fixed_deposit_one" name="fixed_deposit_one" 
+                                       step="0.01" min="0" value="{{ entry.fixed_deposit_one }}">
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label for="fixed_deposit_two" class="form-label">Fixed Deposit 2</label>
+                            <div class="input-group">
+                                <span class="input-group-text">₹</span>
+                                <input type="number" class="form-control" id="fixed_deposit_two" name="fixed_deposit_two" 
+                                       step="0.01" min="0" value="{{ entry.fixed_deposit_two }}">
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label for="etf" class="form-label">ETF Investment</label>
+                            <div class="input-group">
+                                <span class="input-group-text">₹</span>
+                                <input type="number" class="form-control" id="etf" name="etf" 
+                                       step="0.01" min="0" value="{{ entry.etf }}">
+                            </div>
+                        </div>
+                    </div>
+                    
                     <div class="summary-section">
                         <div class="row">
                             <div class="col-md-4">
@@ -233,12 +273,16 @@
                     <h6>Current Totals</h6>
                     {% set total_income = entry.salary + entry.freelancing_one + entry.freelancing_two %}
                     {% set total_expenses = entry.mobile_recharge + entry.wifi + entry.emi_one + entry.emi_two + entry.emi_three + entry.emi_four + entry.food + entry.rent + entry.creditcard_one + entry.creditcard_two + entry.shopping + entry.travel + entry.other_expenses %}
+                    {% set total_savings = (entry.sip or 0) + (entry.fixed_deposit_one or 0) + (entry.fixed_deposit_two or 0) + (entry.etf or 0) %}
+                    {% set total_outflow = total_expenses + total_savings %}
                     
                     <p><strong>Income:</strong> <span class="text-success">₹{{ "%.2f"|format(total_income) }}</span></p>
                     <p><strong>Expenses:</strong> <span class="text-danger">₹{{ "%.2f"|format(total_expenses) }}</span></p>
-                    <p><strong>Net Savings:</strong> 
-                        <span class="{% if total_income - total_expenses >= 0 %}text-success{% else %}text-danger{% endif %}">
-                            ₹{{ "%.2f"|format(total_income - total_expenses) }}
+                    <p><strong>Savings/Investments:</strong> <span class="text-info">₹{{ "%.2f"|format(total_savings) }}</span></p>
+                    <p><strong>Total Outflow:</strong> <span class="text-warning">₹{{ "%.2f"|format(total_outflow) }}</span></p>
+                    <p><strong>Net Balance:</strong> 
+                        <span class="{% if total_income - total_outflow >= 0 %}text-success{% else %}text-danger{% endif %}">
+                            ₹{{ "%.2f"|format(total_income - total_outflow) }}
                         </span>
                     </p>
                 </div>
@@ -262,9 +306,12 @@
                                 <div class="entry-details">
                                     {% set other_total_income = other_entry.salary + other_entry.freelancing_one + other_entry.freelancing_two %}
                                     {% set other_total_expenses = other_entry.mobile_recharge + other_entry.wifi + other_entry.emi_one + other_entry.emi_two + other_entry.emi_three + other_entry.emi_four + other_entry.food + other_entry.rent + other_entry.creditcard_one + other_entry.creditcard_two + other_entry.shopping + other_entry.travel + other_entry.other_expenses %}
+                                    {% set other_total_savings = (other_entry.sip or 0) + (other_entry.fixed_deposit_one or 0) + (other_entry.fixed_deposit_two or 0) + (other_entry.etf or 0) %}
+                                    {% set other_total_outflow = other_total_expenses + other_total_savings %}
                                     <small>Income: <span class="text-success">₹{{ "%.2f"|format(other_total_income) }}</span></small><br>
                                     <small>Expenses: <span class="text-danger">₹{{ "%.2f"|format(other_total_expenses) }}</span></small><br>
-                                    <small>Savings: <span class="{% if other_total_income - other_total_expenses >= 0 %}text-success{% else %}text-danger{% endif %}">₹{{ "%.2f"|format(other_total_income - other_total_expenses) }}</span></small>
+                                    <small>Savings: <span class="text-info">₹{{ "%.2f"|format(other_total_savings) }}</span></small><br>
+                                    <small>Balance: <span class="{% if other_total_income - other_total_outflow >= 0 %}text-success{% else %}text-danger{% endif %}">₹{{ "%.2f"|format(other_total_income - other_total_outflow) }}</span></small>
                                 </div>
                             </div>
                             {% endif %}
@@ -289,10 +336,12 @@
 document.addEventListener('DOMContentLoaded', function() {
     const incomeInputs = ['salary', 'freelancing_one', 'freelancing_two'];
     const expenseInputs = ['mobile_recharge', 'wifi', 'emi_one', 'emi_two', 'emi_three', 'emi_four', 'food', 'rent', 'creditcard_one', 'creditcard_two', 'shopping', 'travel', 'other_expenses'];
+    const savingsInputs = ['sip', 'fixed_deposit_one', 'fixed_deposit_two', 'etf'];
     
     function calculateTotals() {
         let totalIncome = 0;
         let totalExpenses = 0;
+        let totalSavings = 0;
         
         incomeInputs.forEach(id => {
             const value = parseFloat(document.getElementById(id).value) || 0;
@@ -304,20 +353,31 @@ document.addEventListener('DOMContentLoaded', function() {
             totalExpenses += value;
         });
         
-        const netSavings = totalIncome - totalExpenses;
+        savingsInputs.forEach(id => {
+            const value = parseFloat(document.getElementById(id).value) || 0;
+            totalSavings += value;
+        });
+        
+        const totalOutflow = totalExpenses + totalSavings;
+        const netBalance = totalIncome - totalOutflow;
         
         document.getElementById('totalIncome').textContent = '₹' + totalIncome.toFixed(2);
         document.getElementById('totalExpenses').textContent = '₹' + totalExpenses.toFixed(2);
-        document.getElementById('netSavings').textContent = '₹' + netSavings.toFixed(2);
+        document.getElementById('totalSavings').textContent = '₹' + totalSavings.toFixed(2);
+        document.getElementById('totalOutflow').textContent = '₹' + totalOutflow.toFixed(2);
+        document.getElementById('netBalance').textContent = '₹' + netBalance.toFixed(2);
         
         // Update colors
-        const savingsElement = document.getElementById('netSavings');
-        savingsElement.className = netSavings >= 0 ? 'text-success' : 'text-danger';
+        const balanceElement = document.getElementById('netBalance');
+        balanceElement.className = netBalance >= 0 ? 'text-success' : 'text-danger';
     }
     
     // Add event listeners to all input fields
-    [...incomeInputs, ...expenseInputs].forEach(id => {
-        document.getElementById(id).addEventListener('input', calculateTotals);
+    [...incomeInputs, ...expenseInputs, ...savingsInputs].forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.addEventListener('input', calculateTotals);
+        }
     });
     
     // Initial calculation

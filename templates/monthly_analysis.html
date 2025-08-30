@@ -76,15 +76,15 @@
     </div>
     
     <div class="col-md-3">
-        <div class="card yearly-summary-card savings-card">
+        <div class="card yearly-summary-card investment-card">
             <div class="card-body">
                 <div class="stats-icon">
-                    <i class="fas fa-piggy-bank"></i>
+                    <i class="fas fa-chart-line"></i>
                 </div>
                 <div class="stats-content">
-                    <h5>Net Savings</h5>
-                    <h3 id="totalSavings">₹0.00</h3>
-                    <small class="text-muted" id="savingsChange">No change</small>
+                    <h5>Total Investments</h5>
+                    <h3 id="totalInvestments">₹0.00</h3>
+                    <small class="text-muted" id="investmentsChange">No change</small>
                 </div>
             </div>
         </div>
@@ -97,8 +97,8 @@
                     <i class="fas fa-percentage"></i>
                 </div>
                 <div class="stats-content">
-                    <h5>Savings Rate</h5>
-                    <h3 id="savingsRate">0%</h3>
+                    <h5>Investment Rate</h5>
+                    <h3 id="investmentRate">0%</h3>
                     <small class="text-muted">Of total income</small>
                 </div>
             </div>
@@ -146,8 +146,8 @@
                 </div>
                 <div class="stats-content">
                     <h5>YTD Average</h5>
-                    <h3 id="ytdAvgSavings">₹0.00</h3>
-                    <small class="text-muted">Monthly savings</small>
+                    <h3 id="ytdAvgInvestments">₹0.00</h3>
+                    <small class="text-muted">Monthly investments</small>
                 </div>
             </div>
         </div>
@@ -200,6 +200,21 @@
             </div>
         </div>
         
+        <div class="col-md-6">
+            <div class="card yearly-chart-card">
+                <div class="card-header bg-success text-white">
+                    <h5><i class="fas fa-chart-pie me-2"></i>Investment Breakdown</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="investmentBreakdownChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mb-4">
         <div class="col-md-6">
             <div class="card yearly-chart-card">
                 <div class="card-header bg-warning text-dark">
@@ -328,6 +343,7 @@ async function loadMonthlyData() {
         createMonthComparisonChart(data);
         createIncomeBreakdownChart(data);
         createExpenseBreakdownChart(data);
+        createInvestmentBreakdownChart(data);
         createFixedVariableChart(data);
         createYtdProgressChart(data);
         createBudgetHealthChart(data);
@@ -344,14 +360,17 @@ async function loadMonthlyData() {
 function updateSummaryCards(data) {
     document.getElementById('totalIncome').textContent = '₹' + data.current.income.total.toFixed(2);
     document.getElementById('totalExpenses').textContent = '₹' + data.current.expenses.total.toFixed(2);
-    document.getElementById('totalSavings').textContent = '₹' + data.current.savings.toFixed(2);
-    document.getElementById('savingsRate').textContent = data.analytics.savings_rate.toFixed(1) + '%';
+    document.getElementById('totalInvestments').textContent = '₹' + data.current.investments.total.toFixed(2);
+    document.getElementById('investmentRate').textContent = data.analytics.investment_rate.toFixed(1) + '%';
+    
+    // Update YTD average investments
+    document.getElementById('ytdAvgInvestments').textContent = '₹' + data.year_to_date.avg_monthly_investments.toFixed(2);
     
     // Update change indicators
     if (data.previous.has_data) {
         const incomeChange = data.comparisons.income_change;
         const expensesChange = data.comparisons.expenses_change;
-        const savingsChange = data.comparisons.savings_change;
+        const investmentsChange = data.comparisons.investments_change;
         
         document.getElementById('incomeChange').textContent = 
             (incomeChange >= 0 ? '+' : '') + '₹' + incomeChange.toFixed(2) + ' from prev month';
@@ -363,10 +382,10 @@ function updateSummaryCards(data) {
         document.getElementById('expensesChange').className = 
             'text-muted ' + (expensesChange <= 0 ? 'text-success' : 'text-danger');
             
-        document.getElementById('savingsChange').textContent = 
-            (savingsChange >= 0 ? '+' : '') + '₹' + savingsChange.toFixed(2) + ' from prev month';
-        document.getElementById('savingsChange').className = 
-            'text-muted ' + (savingsChange >= 0 ? 'text-success' : 'text-danger');
+        document.getElementById('investmentsChange').textContent = 
+            (investmentsChange >= 0 ? '+' : '') + '₹' + investmentsChange.toFixed(2) + ' from prev month';
+        document.getElementById('investmentsChange').className = 
+            'text-muted ' + (investmentsChange >= 0 ? 'text-success' : 'text-danger');
     }
 }
 
@@ -375,21 +394,20 @@ function updateAnalyticsCards(data) {
     document.getElementById('expenseRatio').textContent = data.analytics.expense_to_income_ratio.toFixed(1) + '%';
     document.getElementById('largestExpenseAmount').textContent = '₹' + data.analytics.largest_expense_category[1].toFixed(2);
     document.getElementById('largestExpenseCategory').textContent = data.analytics.largest_expense_category[0];
-    document.getElementById('ytdAvgSavings').textContent = '₹' + data.year_to_date.avg_monthly_savings.toFixed(2);
 }
 
 // Chart creation functions
 function createMonthComparisonChart(data) {
     const ctx = document.getElementById('monthComparisonChart');
     
-    const currentData = [data.current.income.total, data.current.expenses.total, data.current.savings];
+    const currentData = [data.current.income.total, data.current.expenses.total, data.current.budget_balance];
     const previousData = data.previous.has_data ? 
-        [data.previous.income, data.previous.expenses, data.previous.savings] : [0, 0, 0];
+        [data.previous.income, data.previous.expenses, data.previous.budget_balance] : [0, 0, 0];
     
     monthlyChartInstances.monthComparison = new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: ['Income', 'Expenses', 'Savings'],
+            labels: ['Income', 'Expenses', 'Budget Balance'],
             datasets: [
                 {
                     label: `Current (${data.month} ${data.year})`,
@@ -501,6 +519,59 @@ function createExpenseBreakdownChart(data) {
     });
 }
 
+function createInvestmentBreakdownChart(data) {
+    const ctx = document.getElementById('investmentBreakdownChart');
+    
+    const investmentData = [
+        data.current.investments.sip,
+        data.current.investments.fixed_deposit_one,
+        data.current.investments.fixed_deposit_two,
+        data.current.investments.etf
+    ];
+    
+    const investmentLabels = ['SIP', 'Fixed Deposit 1', 'Fixed Deposit 2', 'ETF'];
+    
+    monthlyChartInstances.investmentBreakdown = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: investmentLabels,
+            datasets: [{
+                data: investmentData,
+                backgroundColor: [
+                    'rgba(17, 153, 142, 0.8)',
+                    'rgba(102, 126, 234, 0.8)',
+                    'rgba(120, 144, 255, 0.8)',
+                    'rgba(253, 187, 45, 0.8)'
+                ],
+                borderColor: [
+                    'rgba(17, 153, 142, 1)',
+                    'rgba(102, 126, 234, 1)',
+                    'rgba(120, 144, 255, 1)',
+                    'rgba(253, 187, 45, 1)'
+                ],
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = total > 0 ? ((context.parsed / total) * 100).toFixed(1) : '0.0';
+                            return context.label + ': ₹' + context.parsed.toLocaleString() + ' (' + percentage + '%)';
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
 function createFixedVariableChart(data) {
     const ctx = document.getElementById('fixedVariableChart');
     
@@ -573,9 +644,9 @@ function createYtdProgressChart(data) {
 function createBudgetHealthChart(data) {
     const ctx = document.getElementById('budgetHealthChart');
     
-    const savingsRate = data.analytics.savings_rate;
+    const investmentRate = data.analytics.investment_rate;
     const expenseRatio = data.analytics.expense_to_income_ratio;
-    const healthScore = Math.max(0, 100 - expenseRatio + savingsRate);
+    const healthScore = Math.max(0, 100 - expenseRatio + investmentRate);
     
     monthlyChartInstances.budgetHealth = new Chart(ctx, {
         type: 'doughnut',

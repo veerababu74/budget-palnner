@@ -51,10 +51,9 @@
                     <i class="fas fa-piggy-bank"></i>
                 </div>
                 <div class="stats-content">
-                    <h5>Net Savings</h5>
-                    {% set total_income = latest_entry.salary + latest_entry.freelancing_one + latest_entry.freelancing_two %}
-                    {% set total_expenses = latest_entry.mobile_recharge + latest_entry.wifi + latest_entry.emi_one + latest_entry.emi_two + latest_entry.emi_three + latest_entry.emi_four + latest_entry.food + latest_entry.rent + latest_entry.creditcard_one + latest_entry.creditcard_two + latest_entry.shopping + latest_entry.travel + latest_entry.other_expenses %}
-                    <h3>₹{{ "%.2f"|format(total_income - total_expenses) }}</h3>
+                    <h5>Total Investments</h5>
+                    {% set total_investments = latest_entry.sip + latest_entry.fixed_deposit_one + latest_entry.fixed_deposit_two + latest_entry.etf %}
+                    <h3>₹{{ "%.2f"|format(total_investments) }}</h3>
                     <small class="text-muted">{{ latest_entry.month }} {{ latest_entry.year }}</small>
                 </div>
             </div>
@@ -190,10 +189,10 @@
     <div class="col-md-6">
         <div class="card chart-card">
             <div class="card-header">
-                <h5><i class="fas fa-chart-area me-2"></i>Savings Trend</h5>
+                <h5><i class="fas fa-chart-area me-2"></i>Budget Balance Trend</h5>
             </div>
             <div class="card-body">
-                <canvas id="savingsTrendChart"></canvas>
+                <canvas id="budgetBalanceChart"></canvas>
             </div>
         </div>
     </div>
@@ -356,7 +355,7 @@ function initializeCharts(data) {
         // Show a message on each canvas that data is not available
         const canvasIds = [
             'incomeExpenseChart', 'expenseBreakdownChart', 'incomeTrendChart',
-            'savingsTrendChart', 'monthlyComparisonChart', 'emiBreakdownChart',
+            'budgetBalanceChart', 'monthlyComparisonChart', 'emiBreakdownChart',
             'creditCardChart', 'foodTrendChart', 'fixedVariableChart', 'categoryTrendsChart'
         ];
         
@@ -553,23 +552,30 @@ function initializeChart3(data) {
 }
 
 function initializeChart4(data) {
-    // Savings Trend Chart
-    const savingsData = data.income.total.map((income, index) => income - data.expenses.total[index]);
-    const ctx4 = document.getElementById('savingsTrendChart');
+    // Budget Balance Trend Chart
+    const budgetBalanceData = data.income.total.map((income, index) => {
+        const totalExpenses = data.expenses.total[index];
+        const totalInvestments = (data.savings.sip[index] || 0) + 
+                               (data.savings.fixed_deposit_one[index] || 0) + 
+                               (data.savings.fixed_deposit_two[index] || 0) + 
+                               (data.savings.etf[index] || 0);
+        return income - totalExpenses - totalInvestments;
+    });
+    const ctx4 = document.getElementById('budgetBalanceChart');
     if (!ctx4) {
-        console.error('savingsTrendChart canvas not found');
+        console.error('budgetBalanceChart canvas not found');
         return;
     }
     
-    console.log('Creating savingsTrendChart');
+    console.log('Creating budgetBalanceChart');
     try {
-        chartInstances.savingsTrend = new Chart(ctx4, {
+        chartInstances.budgetBalance = new Chart(ctx4, {
             type: 'line',
             data: {
                 labels: data.months,
                 datasets: [{
-                    label: 'Net Savings',
-                    data: savingsData,
+                    label: 'Budget Balance',
+                    data: budgetBalanceData,
                     borderColor: 'rgba(75, 192, 192, 1)',
                     backgroundColor: 'rgba(75, 192, 192, 0.2)',
                     fill: true
@@ -589,7 +595,7 @@ function initializeChart4(data) {
             }
         });
     } catch (error) {
-        console.error('Error creating savingsTrendChart:', error);
+        console.error('Error creating budgetBalanceChart:', error);
     }
 }
 

@@ -89,15 +89,30 @@
     </div>
     
     <div class="col-md-3">
+        <div class="card yearly-summary-card investment-card">
+            <div class="card-body">
+                <div class="stats-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="stats-content">
+                    <h5>Total Investments</h5>
+                    <h3 id="totalInvestments">₹0.00</h3>
+                    <small class="text-muted" id="avgInvestments">Avg: $0.00/month</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
         <div class="card yearly-summary-card savings-card">
             <div class="card-body">
                 <div class="stats-icon">
                     <i class="fas fa-piggy-bank"></i>
                 </div>
                 <div class="stats-content">
-                    <h5>Total Savings</h5>
-                    <h3 id="totalSavings">₹0.00</h3>
-                    <small class="text-muted" id="avgSavings">Avg: $0.00/month</small>
+                    <h5>Budget Balance</h5>
+                    <h3 id="totalBudgetBalance">₹0.00</h3>
+                    <small class="text-muted" id="avgBudgetBalance">Avg: $0.00/month</small>
                 </div>
             </div>
         </div>
@@ -111,7 +126,7 @@
         <div class="col-md-12">
             <div class="card yearly-chart-card">
                 <div class="card-header bg-primary text-white">
-                    <h5><i class="fas fa-chart-bar me-2"></i>Monthly Income vs Expenses vs Savings</h5>
+                    <h5><i class="fas fa-chart-bar me-2"></i>Monthly Income vs Expenses vs Investments</h5>
                 </div>
                 <div class="card-body">
                     <div class="chart-container">
@@ -169,11 +184,40 @@
         <div class="col-md-6">
             <div class="card yearly-chart-card">
                 <div class="card-header bg-warning text-dark">
-                    <h5><i class="fas fa-chart-area me-2"></i>Savings Trend</h5>
+                    <h5><i class="fas fa-chart-area me-2"></i>Budget Balance Trend</h5>
                 </div>
                 <div class="card-body">
                     <div class="chart-container">
                         <canvas id="savingsTrendChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Investment Analysis -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card yearly-chart-card">
+                <div class="card-header bg-success text-white">
+                    <h5><i class="fas fa-chart-pie me-2"></i>Investment Portfolio Breakdown</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="investmentBreakdownChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card yearly-chart-card">
+                <div class="card-header bg-success text-white">
+                    <h5><i class="fas fa-chart-line me-2"></i>Investment Growth Trends</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="investmentTrendChart"></canvas>
                     </div>
                 </div>
             </div>
@@ -294,6 +338,8 @@ async function loadYearlyData() {
         createExpenseBreakdownChart(data);
         createIncomeTrendChart(data);
         createSavingsTrendChart(data);
+        createInvestmentBreakdownChart(data);
+        createInvestmentTrendChart(data);
         createFixedExpensesChart(data);
         createVariableExpensesChart(data);
         createMonthlyComparisonChart(data);
@@ -310,10 +356,12 @@ function updateSummaryCards(data) {
     document.getElementById('monthsWithData').textContent = data.summary.months_with_data;
     document.getElementById('totalIncome').textContent = '₹' + data.summary.total_income.toFixed(2);
     document.getElementById('totalExpenses').textContent = '₹' + data.summary.total_expenses.toFixed(2);
-    document.getElementById('totalSavings').textContent = '₹' + data.summary.total_savings.toFixed(2);
+    document.getElementById('totalInvestments').textContent = '₹' + data.summary.total_investments.toFixed(2);
+    document.getElementById('totalBudgetBalance').textContent = '₹' + data.summary.total_budget_balance.toFixed(2);
     document.getElementById('avgIncome').textContent = 'Avg: $' + data.summary.average_monthly_income.toFixed(2) + '/month';
     document.getElementById('avgExpenses').textContent = 'Avg: $' + data.summary.average_monthly_expenses.toFixed(2) + '/month';
-    document.getElementById('avgSavings').textContent = 'Avg: $' + data.summary.average_monthly_savings.toFixed(2) + '/month';
+    document.getElementById('avgInvestments').textContent = 'Avg: $' + data.summary.average_monthly_investments.toFixed(2) + '/month';
+    document.getElementById('avgBudgetBalance').textContent = 'Avg: $' + data.summary.average_monthly_budget_balance.toFixed(2) + '/month';
 }
 
 // Chart creation functions
@@ -339,8 +387,15 @@ function createMonthlyOverviewChart(data) {
                     borderWidth: 1
                 },
                 {
-                    label: 'Savings',
-                    data: data.monthly_totals.savings,
+                    label: 'Investments',
+                    data: data.monthly_totals.investments,
+                    backgroundColor: 'rgba(102, 126, 234, 0.8)',
+                    borderColor: 'rgba(102, 126, 234, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Budget Balance',
+                    data: data.monthly_totals.budget_balance,
                     backgroundColor: 'rgba(23, 162, 184, 0.8)',
                     borderColor: 'rgba(23, 162, 184, 1)',
                     borderWidth: 1
@@ -550,14 +605,14 @@ function createSavingsTrendChart(data) {
         data: {
             labels: data.months,
             datasets: [{
-                label: 'Monthly Savings',
-                data: data.monthly_totals.savings,
+                label: 'Monthly Budget Balance',
+                data: data.monthly_totals.budget_balance,
                 borderColor: 'rgba(23, 162, 184, 1)',
                 backgroundColor: 'rgba(23, 162, 184, 0.2)',
                 tension: 0.4,
                 fill: true,
-                pointBackgroundColor: data.monthly_totals.savings.map(val => val >= 0 ? 'rgba(40, 167, 69, 1)' : 'rgba(220, 53, 69, 1)'),
-                pointBorderColor: data.monthly_totals.savings.map(val => val >= 0 ? 'rgba(40, 167, 69, 1)' : 'rgba(220, 53, 69, 1)')
+                pointBackgroundColor: data.monthly_totals.budget_balance.map(val => val >= 0 ? 'rgba(40, 167, 69, 1)' : 'rgba(220, 53, 69, 1)'),
+                pointBorderColor: data.monthly_totals.budget_balance.map(val => val >= 0 ? 'rgba(40, 167, 69, 1)' : 'rgba(220, 53, 69, 1)')
             }]
         },
         options: {
@@ -590,32 +645,205 @@ function createSavingsTrendChart(data) {
     });
 }
 
+function createInvestmentBreakdownChart(data) {
+    try {
+        const ctx = document.getElementById('investmentBreakdownChart');
+        if (!ctx) {
+            console.error('Investment breakdown chart canvas not found');
+            return;
+        }
+
+        // Check if investment breakdown data exists
+        if (!data.investment_breakdown) {
+            console.error('Investment breakdown data not found in response');
+            return;
+        }
+        
+        // Calculate total investments for each category with error checking
+        const sip = data.investment_breakdown.sip ? data.investment_breakdown.sip.reduce((a, b) => a + b, 0) : 0;
+        const fd1 = data.investment_breakdown.fixed_deposit_one ? data.investment_breakdown.fixed_deposit_one.reduce((a, b) => a + b, 0) : 0;
+        const fd2 = data.investment_breakdown.fixed_deposit_two ? data.investment_breakdown.fixed_deposit_two.reduce((a, b) => a + b, 0) : 0;
+        const etf = data.investment_breakdown.etf ? data.investment_breakdown.etf.reduce((a, b) => a + b, 0) : 0;
+        
+        console.log('Investment breakdown totals:', { sip, fd1, fd2, etf });
+        
+        yearlyChartInstances.investmentBreakdown = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['SIP', 'Fixed Deposit 1', 'Fixed Deposit 2', 'ETF'],
+                datasets: [{
+                    data: [sip, fd1, fd2, etf],
+                    backgroundColor: [
+                        'rgba(17, 153, 142, 0.8)',
+                        'rgba(102, 126, 234, 0.8)',
+                        'rgba(120, 144, 255, 0.8)',
+                        'rgba(253, 187, 45, 0.8)'
+                    ],
+                    borderColor: [
+                        'rgba(17, 153, 142, 1)',
+                        'rgba(102, 126, 234, 1)',
+                        'rgba(120, 144, 255, 1)',
+                        'rgba(253, 187, 45, 1)'
+                    ],
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = ((context.parsed / total) * 100).toFixed(1);
+                                return context.label + ': ₹' + context.parsed.toLocaleString() + ' (' + percentage + '%)';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    } catch (error) {
+        console.error('Error creating investment breakdown chart:', error);
+    }
+}
+
+function createInvestmentTrendChart(data) {
+    try {
+        const ctx = document.getElementById('investmentTrendChart');
+        if (!ctx) {
+            console.error('Investment trend chart canvas not found');
+            return;
+        }
+
+        // Check if investment breakdown data exists
+        if (!data.investment_breakdown) {
+            console.error('Investment breakdown data not found for trend chart');
+            return;
+        }
+        
+        console.log('Investment trend data:', data.investment_breakdown);
+        
+        yearlyChartInstances.investmentTrend = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: data.months || [],
+                datasets: [
+                    {
+                        label: 'SIP',
+                        data: data.investment_breakdown.sip || [],
+                        borderColor: 'rgba(17, 153, 142, 1)',
+                        backgroundColor: 'rgba(17, 153, 142, 0.1)',
+                        fill: false,
+                        tension: 0.4,
+                        borderWidth: 3
+                    },
+                    {
+                        label: 'Fixed Deposit 1',
+                        data: data.investment_breakdown.fixed_deposit_one || [],
+                        borderColor: 'rgba(102, 126, 234, 1)',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        fill: false,
+                        tension: 0.4,
+                        borderWidth: 2
+                    },
+                    {
+                        label: 'Fixed Deposit 2',
+                        data: data.investment_breakdown.fixed_deposit_two || [],
+                        borderColor: 'rgba(120, 144, 255, 1)',
+                        backgroundColor: 'rgba(120, 144, 255, 0.1)',
+                        fill: false,
+                        tension: 0.4,
+                        borderWidth: 2
+                    },
+                    {
+                        label: 'ETF',
+                        data: data.investment_breakdown.etf || [],
+                        borderColor: 'rgba(253, 187, 45, 1)',
+                        backgroundColor: 'rgba(253, 187, 45, 0.1)',
+                        fill: false,
+                        tension: 0.4,
+                        borderWidth: 2
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return '₹' + value.toLocaleString();
+                            }
+                        }
+                    }
+                },
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.dataset.label + ': ₹' + context.parsed.y.toLocaleString();
+                        }
+                    }
+                }
+            }
+        }
+    });
+    } catch (error) {
+        console.error('Error creating investment trend chart:', error);
+    }
+}
+
 function createFixedExpensesChart(data) {
-    const ctx = document.getElementById('fixedExpensesChart');
-    yearlyChartInstances.fixedExpenses = new Chart(ctx, {
+    try {
+        const ctx = document.getElementById('fixedExpensesChart');
+        if (!ctx) {
+            console.error('Fixed expenses chart canvas not found');
+            return;
+        }
+
+        // Check if expense breakdown data exists
+        if (!data.expense_breakdown) {
+            console.error('Expense breakdown data not found');
+            return;
+        }
+        
+        console.log('Fixed expenses data:', data.expense_breakdown);
+        
+        yearlyChartInstances.fixedExpenses = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: data.months,
+            labels: data.months || [],
             datasets: [
                 {
                     label: 'Rent',
-                    data: data.expense_breakdown.rent,
+                    data: data.expense_breakdown.rent || [],
                     borderColor: 'rgba(220, 53, 69, 1)',
                     backgroundColor: 'rgba(220, 53, 69, 0.1)',
                     tension: 0.4
                 },
                 {
                     label: 'EMIs',
-                    data: data.expense_breakdown.emi_total,
+                    data: data.expense_breakdown.emi_total || [],
                     borderColor: 'rgba(108, 117, 125, 1)',
                     backgroundColor: 'rgba(108, 117, 125, 0.1)',
                     tension: 0.4
                 },
                 {
                     label: 'Mobile/WiFi',
-                    data: data.months.map((_, i) => 
-                        data.expense_breakdown.mobile_recharge[i] + data.expense_breakdown.wifi[i]
-                    ),
+                    data: (data.months || []).map((_, i) => {
+                        const mobile = (data.expense_breakdown.mobile_recharge || [])[i] || 0;
+                        const wifi = (data.expense_breakdown.wifi || [])[i] || 0;
+                        return mobile + wifi;
+                    }),
                     borderColor: 'rgba(0, 150, 136, 1)',
                     backgroundColor: 'rgba(0, 150, 136, 0.1)',
                     tension: 0.4
@@ -636,39 +864,56 @@ function createFixedExpensesChart(data) {
             }
         }
     });
+    } catch (error) {
+        console.error('Error creating fixed expenses chart:', error);
+    }
 }
 
 function createVariableExpensesChart(data) {
-    const ctx = document.getElementById('variableExpensesChart');
-    yearlyChartInstances.variableExpenses = new Chart(ctx, {
+    try {
+        const ctx = document.getElementById('variableExpensesChart');
+        if (!ctx) {
+            console.error('Variable expenses chart canvas not found');
+            return;
+        }
+
+        // Check if expense breakdown data exists
+        if (!data.expense_breakdown) {
+            console.error('Expense breakdown data not found');
+            return;
+        }
+        
+        console.log('Variable expenses data:', data.expense_breakdown);
+        
+        yearlyChartInstances.variableExpenses = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: data.months,
+            labels: data.months || [],
             datasets: [
                 {
                     label: 'Food',
-                    data: data.expense_breakdown.food,
+                    data: data.expense_breakdown.food || [],
                     borderColor: 'rgba(255, 193, 7, 1)',
                     backgroundColor: 'rgba(255, 193, 7, 0.1)',
                     tension: 0.4
                 },
                 {
                     label: 'Shopping',
-                    data: data.expense_breakdown.shopping,
+                    data: data.expense_breakdown.shopping || [],
                     borderColor: 'rgba(233, 30, 99, 1)',
                     backgroundColor: 'rgba(233, 30, 99, 0.1)',
                     tension: 0.4
                 },
                 {
                     label: 'Travel',
-                    data: data.expense_breakdown.travel,
+                    data: data.expense_breakdown.travel || [],
                     borderColor: 'rgba(255, 87, 34, 1)',
                     backgroundColor: 'rgba(255, 87, 34, 0.1)',
                     tension: 0.4
                 },
                 {
                     label: 'Credit Cards',
-                    data: data.expense_breakdown.creditcard_total,
+                    data: data.expense_breakdown.creditcard_total || [],
                     borderColor: 'rgba(102, 16, 242, 1)',
                     backgroundColor: 'rgba(102, 16, 242, 0.1)',
                     tension: 0.4
@@ -689,32 +934,56 @@ function createVariableExpensesChart(data) {
             }
         }
     });
+    } catch (error) {
+        console.error('Error creating variable expenses chart:', error);
+    }
 }
 
 function createMonthlyComparisonChart(data) {
-    const ctx = document.getElementById('monthlyComparisonChart');
-    yearlyChartInstances.monthlyComparison = new Chart(ctx, {
+    try {
+        const ctx = document.getElementById('monthlyComparisonChart');
+        if (!ctx) {
+            console.error('Monthly comparison chart canvas not found');
+            return;
+        }
+
+        // Check if monthly comparison data exists
+        if (!data.monthly_comparison) {
+            console.error('Monthly comparison data not found');
+            return;
+        }
+        
+        console.log('Monthly comparison data:', data.monthly_comparison);
+        
+        yearlyChartInstances.monthlyComparison = new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: data.monthly_comparison.months,
+            labels: data.monthly_comparison.months || [],
             datasets: [
                 {
                     label: 'Income',
-                    data: data.monthly_comparison.income,
+                    data: data.monthly_comparison.income || [],
                     backgroundColor: 'rgba(40, 167, 69, 0.7)',
                     borderColor: 'rgba(40, 167, 69, 1)',
                     borderWidth: 1
                 },
                 {
                     label: 'Expenses',
-                    data: data.monthly_comparison.expenses,
+                    data: data.monthly_comparison.expenses || [],
                     backgroundColor: 'rgba(220, 53, 69, 0.7)',
                     borderColor: 'rgba(220, 53, 69, 1)',
                     borderWidth: 1
                 },
                 {
-                    label: 'Savings',
-                    data: data.monthly_comparison.savings,
+                    label: 'Investments',
+                    data: data.monthly_comparison.investments || [],
+                    backgroundColor: 'rgba(102, 126, 234, 0.7)',
+                    borderColor: 'rgba(102, 126, 234, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Budget Balance',
+                    data: data.monthly_comparison.budget_balance || [],
                     backgroundColor: 'rgba(23, 162, 184, 0.7)',
                     borderColor: 'rgba(23, 162, 184, 1)',
                     borderWidth: 1
@@ -741,6 +1010,9 @@ function createMonthlyComparisonChart(data) {
             }
         }
     });
+    } catch (error) {
+        console.error('Error creating monthly comparison chart:', error);
+    }
 }
 
 // Initialize when page loads

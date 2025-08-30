@@ -23,14 +23,54 @@ body {
 }
 
 /* Enhanced Responsive Design */
+/* Extra large screens */
+@media (min-width: 1400px) {
+    .container-fluid {
+        max-width: 1600px;
+        margin: 0 auto;
+    }
+
+    .chart-card canvas {
+        max-height: 500px !important;
+    }
+
+    .stats-card .card-body {
+        padding: 2.5rem;
+    }
+
+    .stats-icon {
+        width: 100px;
+        height: 100px;
+        font-size: 3.5rem;
+    }
+}
+
+/* Large desktop screens */
+@media (max-width: 1400px) and (min-width: 1200px) {
+    .container-fluid {
+        max-width: 1200px;
+        padding-left: 25px;
+        padding-right: 25px;
+    }
+
+    .chart-card canvas {
+        max-height: 450px !important;
+    }
+}
+
 @media (max-width: 1200px) {
     .container-fluid {
         max-width: 100%;
         padding-left: 20px;
         padding-right: 20px;
     }
+
+    .chart-card canvas {
+        max-height: 400px !important;
+    }
 }
 
+/* Tablet and medium screens */
 @media (max-width: 992px) {
     .container-fluid {
         padding-left: 15px;
@@ -46,7 +86,11 @@ body {
     .col-md-4,
     .col-md-3,
     .col-md-8,
-    .col-md-12 {
+    .col-md-12,
+    .col-lg-6,
+    .col-lg-4,
+    .col-lg-3,
+    .col-lg-8 {
         padding-left: 10px;
         padding-right: 10px;
         margin-bottom: 20px;
@@ -61,6 +105,23 @@ body {
     .dashboard-header h1,
     .budget-header h1 {
         font-size: 2rem;
+    }
+
+    .chart-card canvas {
+        max-height: 350px !important;
+    }
+
+    .stats-card .card-body {
+        padding: 1.5rem;
+        flex-direction: row;
+        text-align: left;
+    }
+
+    .stats-icon {
+        width: 70px;
+        height: 70px;
+        font-size: 2.8rem;
+        margin-right: 1.2rem;
     }
 }
 
@@ -891,6 +952,11 @@ body[data-page="bucket"] .nav-link[data-page="bucket"] {
     color: white;
 }
 
+.investment-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
 .savings-card {
     background: linear-gradient(135deg, #fdbb2d 0%, #22c1c3 100%);
     color: white;
@@ -1573,5 +1639,614 @@ body[data-page="bucket"] .nav-link[data-page="bucket"] {
 @media (max-width: 576px) {
     .chart-container {
         height: 250px;
+    }
+}
+
+/* ===== SAVINGS CHART SPECIFIC STYLES ===== */
+.savings-chart-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.savings-chart-card {
+    border: none;
+    border-radius: 20px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    overflow: hidden;
+    background: white;
+    min-height: 400px;
+}
+
+.savings-chart-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+}
+
+.savings-chart-card .card-header {
+    border: none;
+    font-weight: 600;
+    padding: 1.5rem 2rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.savings-chart-card .card-header.fixed-deposit {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: white;
+}
+
+.savings-chart-card .card-header.sip {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%) !important;
+    color: white;
+}
+
+.savings-chart-card .card-header.etf {
+    background: linear-gradient(135deg, #fdbb2d 0%, #22c1c3 100%) !important;
+    color: white;
+}
+
+.savings-chart-card .card-header.main-savings {
+    background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%) !important;
+    color: #333;
+}
+
+.savings-chart-card .card-body {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 300px;
+}
+
+.savings-chart-card canvas {
+    max-height: 250px !important;
+    max-width: 100% !important;
+}
+
+.savings-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.savings-summary-card {
+    padding: 1.5rem;
+    border-radius: 15px;
+    text-align: center;
+    color: white;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.savings-summary-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.savings-summary-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 100%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+    transform: rotate(45deg);
+}
+
+.savings-summary-card .content {
+    position: relative;
+    z-index: 1;
+}
+
+.savings-summary-card h5 {
+    margin: 0 0 0.5rem 0;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.savings-summary-card h3 {
+    margin: 0;
+    font-size: 1.8rem;
+    font-weight: 700;
+}
+
+.fixed-deposit-summary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.sip-summary {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+}
+
+.etf-summary {
+    background: linear-gradient(135deg, #fdbb2d 0%, #22c1c3 100%);
+}
+
+.main-savings-summary {
+    background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+    color: #333;
+}
+
+/* Responsive adjustments for savings charts */
+@media (max-width: 1200px) {
+    .savings-chart-container {
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.2rem;
+    }
+}
+
+@media (max-width: 992px) {
+    .savings-chart-container {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+
+    .savings-chart-card {
+        min-height: 350px;
+    }
+
+    .savings-summary {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.8rem;
+    }
+
+    .savings-summary-card {
+        padding: 1.2rem;
+    }
+
+    .savings-summary-card h3 {
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .savings-chart-container {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .savings-chart-card {
+        min-height: 320px;
+    }
+
+    .savings-chart-card .card-header {
+        padding: 1rem 1.5rem;
+    }
+
+    .savings-chart-card .card-body {
+        padding: 1rem;
+        min-height: 250px;
+    }
+
+    .savings-chart-card canvas {
+        max-height: 200px !important;
+    }
+
+    .savings-summary {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.5rem;
+    }
+
+    .savings-summary-card {
+        padding: 1rem;
+    }
+
+    .savings-summary-card h5 {
+        font-size: 0.8rem;
+    }
+
+    .savings-summary-card h3 {
+        font-size: 1.3rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .savings-chart-container {
+        gap: 0.8rem;
+    }
+
+    .savings-chart-card {
+        min-height: 300px;
+    }
+
+    .savings-chart-card .card-header {
+        padding: 0.8rem 1rem;
+        font-size: 0.9rem;
+    }
+
+    .savings-chart-card .card-body {
+        padding: 0.8rem;
+        min-height: 220px;
+    }
+
+    .savings-chart-card canvas {
+        max-height: 180px !important;
+    }
+
+    .savings-summary {
+        grid-template-columns: 1fr;
+        gap: 0.8rem;
+    }
+
+    .savings-summary-card {
+        padding: 1rem;
+    }
+
+    .savings-summary-card h3 {
+        font-size: 1.2rem;
+    }
+}
+
+/* ===== ENHANCED GENERAL RESPONSIVENESS ===== */
+
+/* Ultra-wide screens (4K and above) */
+@media (min-width: 1600px) {
+    .container-fluid {
+        max-width: 1800px;
+    }
+
+    .chart-card canvas {
+        max-height: 600px !important;
+    }
+
+    .dashboard-header h1,
+    .budget-header h1 {
+        font-size: 3rem;
+    }
+}
+
+/* Enhanced mobile landscape mode */
+@media (max-height: 500px) and (orientation: landscape) {
+
+    .dashboard-header,
+    .budget-header {
+        padding: 0.8rem;
+        margin-bottom: 0.8rem;
+    }
+
+    .dashboard-header h1,
+    .budget-header h1 {
+        font-size: 1.5rem;
+    }
+
+    .stats-card .card-body {
+        padding: 0.8rem;
+    }
+
+    .chart-card .card-body {
+        padding: 0.5rem;
+    }
+
+    .chart-card canvas {
+        max-height: 200px !important;
+    }
+}
+
+/* Improved container responsiveness */
+.responsive-container {
+    width: 100%;
+    padding-right: var(--bs-gutter-x, 0.75rem);
+    padding-left: var(--bs-gutter-x, 0.75rem);
+    margin-right: auto;
+    margin-left: auto;
+}
+
+/* Enhanced grid system */
+.responsive-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+}
+
+@media (min-width: 576px) {
+    .responsive-grid {
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    }
+}
+
+@media (min-width: 768px) {
+    .responsive-grid {
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    }
+}
+
+@media (min-width: 992px) {
+    .responsive-grid {
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    }
+}
+
+/* Flexible text sizes */
+.responsive-text {
+    font-size: clamp(0.8rem, 2.5vw, 1.2rem);
+}
+
+.responsive-title {
+    font-size: clamp(1.2rem, 4vw, 2.5rem);
+}
+
+.responsive-subtitle {
+    font-size: clamp(0.9rem, 3vw, 1.5rem);
+}
+
+/* Enhanced button responsiveness */
+.btn-responsive {
+    padding: clamp(0.5rem, 2vw, 1rem) clamp(0.8rem, 3vw, 1.5rem);
+    font-size: clamp(0.8rem, 2.5vw, 1rem);
+    min-height: 44px;
+    border-radius: clamp(8px, 2vw, 15px);
+}
+
+/* Improved card responsiveness */
+.card-responsive {
+    border-radius: clamp(8px, 2vw, 20px);
+    box-shadow: 0 clamp(2px, 1vw, 8px) clamp(8px, 3vw, 25px) rgba(0, 0, 0, 0.1);
+    margin-bottom: clamp(0.5rem, 2vw, 2rem);
+}
+
+.card-responsive .card-body {
+    padding: clamp(0.8rem, 3vw, 2rem);
+}
+
+/* Enhanced table responsiveness */
+.table-responsive-enhanced {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: clamp(8px, 2vw, 15px);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.table-responsive-enhanced .table {
+    min-width: 600px;
+    margin-bottom: 0;
+}
+
+.table-responsive-enhanced .table th,
+.table-responsive-enhanced .table td {
+    padding: clamp(0.3rem, 1.5vw, 0.8rem);
+    font-size: clamp(0.7rem, 2vw, 0.9rem);
+    white-space: nowrap;
+}
+
+/* Improved form responsiveness */
+.form-responsive .form-control,
+.form-responsive .form-select {
+    font-size: clamp(14px, 3vw, 16px);
+    padding: clamp(0.5rem, 2vw, 0.75rem);
+    border-radius: clamp(4px, 1vw, 8px);
+}
+
+.form-responsive .form-label {
+    font-size: clamp(0.8rem, 2.5vw, 1rem);
+    font-weight: 600;
+}
+
+/* Enhanced navigation responsiveness */
+@media (max-width: 575px) {
+    .navbar-nav {
+        text-align: center;
+    }
+
+    .navbar-nav .nav-link {
+        padding: 0.8rem 1rem !important;
+        border-radius: 8px;
+        margin: 0.2rem 0;
+    }
+}
+
+/* Improved modal responsiveness */
+@media (max-width: 575px) {
+    .modal-dialog {
+        margin: 0.5rem;
+        max-width: calc(100vw - 1rem);
+    }
+
+    .modal-content {
+        border-radius: 12px;
+    }
+
+    .modal-header,
+    .modal-footer {
+        padding: 0.8rem 1rem;
+    }
+
+    .modal-body {
+        padding: 1rem;
+    }
+}
+
+/* Enhanced loading states */
+.loading-responsive {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: clamp(200px, 30vh, 400px);
+    padding: clamp(1rem, 3vw, 2rem);
+}
+
+.spinner-responsive {
+    width: clamp(2rem, 5vw, 3rem);
+    height: clamp(2rem, 5vw, 3rem);
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+
+    .card,
+    .chart-card,
+    .stats-card {
+        border: 2px solid #000;
+    }
+
+    .btn {
+        border: 2px solid #000;
+    }
+}
+
+/* Dark mode support preparation */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg-color: #1a1a1a;
+        --text-color: #ffffff;
+        --card-bg: #2d2d2d;
+        --border-color: #404040;
+    }
+}
+
+/* Print optimizations */
+@media print {
+
+    .navbar,
+    .btn,
+    .dropdown,
+    .sidebar {
+        display: none !important;
+    }
+
+    .chart-card,
+    .stats-card {
+        break-inside: avoid;
+        box-shadow: none !important;
+        border: 1px solid #000 !important;
+        margin-bottom: 1rem !important;
+    }
+
+    body {
+        background: white !important;
+        color: black !important;
+        font-size: 12pt !important;
+    }
+
+    .container-fluid {
+        max-width: none !important;
+        padding: 0 !important;
+    }
+}
+
+/* Custom utility classes for flexibility */
+.flex-responsive {
+    display: flex;
+    flex-wrap: wrap;
+    gap: clamp(0.5rem, 2vw, 1.5rem);
+}
+
+.grid-responsive {
+    display: grid;
+    gap: clamp(0.5rem, 2vw, 1.5rem);
+    grid-template-columns: repeat(auto-fit, minmax(clamp(200px, 40vw, 300px), 1fr));
+}
+
+.padding-responsive {
+    padding: clamp(0.5rem, 3vw, 2rem);
+}
+
+.margin-responsive {
+    margin: clamp(0.5rem, 2vw, 1.5rem);
+}
+
+.border-radius-responsive {
+    border-radius: clamp(4px, 1.5vw, 15px);
+}
+
+/* Enhanced scrollbar styling */
+::-webkit-scrollbar {
+    width: clamp(6px, 1vw, 12px);
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: clamp(4px, 1vw, 8px);
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: clamp(4px, 1vw, 8px);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+}
+
+/* ===== FINAL IMPROVEMENTS FOR ALL SCREEN TYPES ===== */
+
+/* Ultra-small device optimizations (< 480px) */
+@media (max-width: 480px) {
+    .container-fluid {
+        padding-left: 5px !important;
+        padding-right: 5px !important;
+    }
+
+    .card {
+        border-radius: 8px !important;
+        margin-bottom: 8px !important;
+    }
+
+    .card-body {
+        padding: 8px !important;
+    }
+
+    .btn {
+        font-size: 14px !important;
+        padding: 8px 12px !important;
+    }
+
+    .chart-card canvas {
+        max-height: 200px !important;
+    }
+
+    .savings-chart-card canvas {
+        max-height: 150px !important;
+    }
+}
+
+/* Ultra-wide screen improvements (4K+) */
+@media (min-width: 2560px) {
+    .container-fluid {
+        max-width: 2400px;
+        margin: 0 auto;
+    }
+
+    .chart-card canvas {
+        max-height: 800px !important;
+    }
+
+    .savings-chart-card canvas {
+        max-height: 400px !important;
+    }
+
+    .dashboard-header h1,
+    .budget-header h1 {
+        font-size: 4rem;
+    }
+
+    .stats-card .card-body {
+        padding: 3rem;
+    }
+
+    .stats-icon {
+        width: 120px;
+        height: 120px;
+        font-size: 4rem;
     }
 }

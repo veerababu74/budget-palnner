@@ -212,6 +212,46 @@
                         </div>
                     </div>
                     
+                    <!-- Savings & Investments Section -->
+                    <div class="section-header">
+                        <h6><i class="fas fa-piggy-bank me-2"></i>Savings & Investments</h6>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <label for="sip" class="form-label">SIP Investment</label>
+                            <div class="input-group">
+                                <span class="input-group-text">₹</span>
+                                <input type="number" class="form-control" id="sip" name="sip" 
+                                       step="0.01" min="0" value="{{ form_data.sip if form_data else 0 }}">
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label for="fixed_deposit_one" class="form-label">Fixed Deposit 1</label>
+                            <div class="input-group">
+                                <span class="input-group-text">₹</span>
+                                <input type="number" class="form-control" id="fixed_deposit_one" name="fixed_deposit_one" 
+                                       step="0.01" min="0" value="{{ form_data.fixed_deposit_one if form_data else 0 }}">
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label for="fixed_deposit_two" class="form-label">Fixed Deposit 2</label>
+                            <div class="input-group">
+                                <span class="input-group-text">₹</span>
+                                <input type="number" class="form-control" id="fixed_deposit_two" name="fixed_deposit_two" 
+                                       step="0.01" min="0" value="{{ form_data.fixed_deposit_two if form_data else 0 }}">
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label for="etf" class="form-label">ETF Investment</label>
+                            <div class="input-group">
+                                <span class="input-group-text">₹</span>
+                                <input type="number" class="form-control" id="etf" name="etf" 
+                                       step="0.01" min="0" value="{{ form_data.etf if form_data else 0 }}">
+                            </div>
+                        </div>
+                    </div>
+                    
                     <!-- Variable Budget Info -->
                     <div class="alert alert-info mb-4">
                         <div class="d-flex align-items-center">
@@ -398,6 +438,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     const incomeInputs = ['salary', 'freelancing_one', 'freelancing_two'];
     const expenseInputs = ['mobile_recharge', 'wifi', 'emi_one', 'emi_two', 'emi_three', 'emi_four', 'food', 'rent', 'creditcard_one', 'creditcard_two', 'shopping', 'travel', 'other_expenses'];
+    const savingsInputs = ['sip', 'fixed_deposit_one', 'fixed_deposit_two', 'etf'];
     
     // Display current month
     const now = new Date();
@@ -407,6 +448,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function calculateTotals() {
         let totalIncome = 0;
         let totalExpenses = 0;
+        let totalSavings = 0;
         
         incomeInputs.forEach(id => {
             const value = parseFloat(document.getElementById(id).value) || 0;
@@ -418,10 +460,16 @@ document.addEventListener('DOMContentLoaded', function() {
             totalExpenses += value;
         });
         
-        const netSavings = totalIncome - totalExpenses;
+        savingsInputs.forEach(id => {
+            const value = parseFloat(document.getElementById(id).value) || 0;
+            totalSavings += value;
+        });
+        
+        const totalOutflow = totalExpenses + totalSavings;
+        const netSavings = totalIncome - totalOutflow;
         
         document.getElementById('totalIncome').textContent = '₹' + totalIncome.toFixed(2);
-        document.getElementById('totalExpenses').textContent = '₹' + totalExpenses.toFixed(2);
+        document.getElementById('totalExpenses').textContent = '₹' + totalOutflow.toFixed(2);
         document.getElementById('netSavings').textContent = '₹' + netSavings.toFixed(2);
         
         // Update colors
@@ -430,7 +478,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Add event listeners to all input fields
-    [...incomeInputs, ...expenseInputs].forEach(id => {
+    [...incomeInputs, ...expenseInputs, ...savingsInputs].forEach(id => {
         document.getElementById(id).addEventListener('input', calculateTotals);
     });
     

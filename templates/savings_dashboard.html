@@ -1,0 +1,647 @@
+{% extends "base.html" %}
+
+{% block title %}Savings Dashboard - Budget Planner{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Savings Dashboard Header -->
+    <div class="dashboard-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="responsive-title"><i class="fas fa-piggy-bank me-3"></i>Investments Dashboard</h1>
+                <p class="mb-0 responsive-text">Track your various investments and savings vehicles</p>
+            </div>
+            <div class="dashboard-stats">
+                <div class="stat-item">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span id="currentPeriod">{{ current_month }}</span>
+                </div>
+                {% if entries_count is defined %}
+                <div class="stat-item">
+                    <i class="fas fa-database"></i>
+                    <span>{{ entries_count }} entries, {{ savings_entries }} with investments</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Indicator -->
+    <div id="loadingIndicator" class="text-center py-5">
+        <div class="loading-responsive">
+            <div class="spinner-border spinner-responsive text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-3 responsive-text">Loading your investment data...</p>
+        </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div id="chartsSection" style="display: none;">
+        
+        <!-- Savings Summary Cards -->
+        <div class="savings-summary mb-4">
+            <div class="savings-summary-card main-savings-summary">
+                <div class="content">
+                    <h5>Total Investments</h5>
+                    <h3 id="totalSavingsAmount">₹0.00</h3>
+                    <small id="totalSavingsGrowth">Growth: 0%</small>
+                </div>
+            </div>
+            
+            <div class="savings-summary-card fixed-deposit-summary">
+                <div class="content">
+                    <h5>Fixed Deposits</h5>
+                    <h3 id="fixedDepositAmount">₹0.00</h3>
+                    <small id="fixedDepositGrowth">Growth: 0%</small>
+                </div>
+            </div>
+            
+            <div class="savings-summary-card sip-summary">
+                <div class="content">
+                    <h5>SIP Investments</h5>
+                    <h3 id="sipAmount">₹0.00</h3>
+                    <small id="sipGrowth">Growth: 0%</small>
+                </div>
+            </div>
+            
+            <div class="savings-summary-card etf-summary">
+                <div class="content">
+                    <h5>ETF Investments</h5>
+                    <h3 id="etfAmount">₹0.00</h3>
+                    <small id="etfGrowth">Growth: 0%</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Savings Charts Grid -->
+        <div class="savings-chart-container">
+            <!-- Fixed Deposits Chart -->
+            <div class="savings-chart-card">
+                <div class="card-header fixed-deposit">
+                    <h5><i class="fas fa-university me-2"></i>Fixed Deposits Trend</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="fixedDepositChart"></canvas>
+                </div>
+            </div>
+
+            <!-- SIP Chart -->
+            <div class="savings-chart-card">
+                <div class="card-header sip">
+                    <h5><i class="fas fa-chart-line me-2"></i>SIP Investments Trend</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="sipChart"></canvas>
+                </div>
+            </div>
+
+            <!-- ETF Chart -->
+            <div class="savings-chart-card">
+                <div class="card-header etf">
+                    <h5><i class="fas fa-chart-bar me-2"></i>ETF Investments Trend</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="etfChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Total Investments Overview -->
+            <div class="savings-chart-card">
+                <div class="card-header main-savings">
+                    <h5><i class="fas fa-coins me-2"></i>Total Investments Overview</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="totalSavingsChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Additional Analysis Charts -->
+        <div class="row mt-4">
+            <!-- Savings Allocation Pie Chart -->
+            <div class="col-md-6">
+                <div class="card chart-card">
+                    <div class="card-header bg-info text-white">
+                        <h5><i class="fas fa-pie-chart me-2"></i>Savings Allocation</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="savingsAllocationChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Monthly Savings Growth -->
+            <div class="col-md-6">
+                <div class="card chart-card">
+                    <div class="card-header bg-success text-white">
+                        <h5><i class="fas fa-trending-up me-2"></i>Monthly Growth Rate</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="savingsGrowthChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Yearly Comparison -->
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <div class="card chart-card">
+                    <div class="card-header bg-primary text-white">
+                        <h5><i class="fas fa-calendar-year me-2"></i>Year-over-Year Comparison</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="yearlyComparisonChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- No Data Message -->
+    <div id="noDataMessage" class="row" style="display: none;">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-body text-center">
+                    <i class="fas fa-piggy-bank fa-4x text-muted mb-3"></i>
+                    <h4>No Investment Data Available</h4>
+                    <p class="text-muted">Start by adding your budget entries to track your investments and savings.</p>
+                    <div class="d-flex justify-content-center gap-3">
+                        <a href="/budget" class="btn btn-primary btn-responsive">
+                            <i class="fas fa-plus me-2"></i>Add Budget Entry
+                        </a>
+                        <a href="/dashboard" class="btn btn-secondary btn-responsive">
+                            <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let savingsChartInstances = {};
+
+// Load chart data specifically for savings
+async function loadSavingsData(timespan = 'all') {
+    try {
+        console.log('Fetching savings data from:', `/api/chart-data?timespan=${timespan}`);
+        const response = await fetch(`/api/chart-data?timespan=${timespan}`);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('Received savings data:', data);
+        return data;
+    } catch (error) {
+        console.error('Error loading savings data:', error);
+        return null;
+    }
+}
+
+// Destroy existing charts
+function destroyExistingSavingsCharts() {
+    Object.values(savingsChartInstances).forEach(chart => {
+        if (chart) chart.destroy();
+    });
+    savingsChartInstances = {};
+}
+
+// Update charts
+async function updateSavingsCharts() {
+    try {
+        document.getElementById('loadingIndicator').style.display = 'block';
+        document.getElementById('chartsSection').style.display = 'none';
+        document.getElementById('noDataMessage').style.display = 'none';
+
+        const data = await loadSavingsData();
+        
+        if (!data || !data.months || data.months.length === 0) {
+            document.getElementById('loadingIndicator').style.display = 'none';
+            document.getElementById('noDataMessage').style.display = 'block';
+            return;
+        }
+
+        destroyExistingSavingsCharts();
+        
+        // Create all savings charts
+        createFixedDepositChart(data);
+        createSIPChart(data);
+        createETFChart(data);
+        createTotalSavingsChart(data);
+        createSavingsAllocationChart(data);
+        createSavingsGrowthChart(data);
+        createYearlyComparisonChart(data);
+        
+        // Update summary cards
+        updateSavingsSummaryCards(data);
+        
+        document.getElementById('loadingIndicator').style.display = 'none';
+        document.getElementById('chartsSection').style.display = 'block';
+        
+    } catch (error) {
+        console.error('Error updating savings charts:', error);
+        document.getElementById('loadingIndicator').style.display = 'none';
+        document.getElementById('noDataMessage').style.display = 'block';
+    }
+}
+
+// Create Fixed Deposit Chart
+function createFixedDepositChart(data) {
+    const ctx = document.getElementById('fixedDepositChart');
+    if (!ctx) return;
+
+    const fixedDepositData = data.months.map((_, index) => 
+        (data.savings.fixed_deposit_one[index] || 0) + (data.savings.fixed_deposit_two[index] || 0)
+    );
+
+    savingsChartInstances.fixedDeposit = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: data.months,
+            datasets: [{
+                label: 'Fixed Deposits',
+                data: fixedDepositData,
+                borderColor: 'rgba(102, 126, 234, 1)',
+                backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                fill: true,
+                tension: 0.4,
+                borderWidth: 3
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '₹' + value.toLocaleString();
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Create SIP Chart
+function createSIPChart(data) {
+    const ctx = document.getElementById('sipChart');
+    if (!ctx) return;
+
+    savingsChartInstances.sip = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: data.months,
+            datasets: [{
+                label: 'SIP Investments',
+                data: data.savings.sip,
+                borderColor: 'rgba(17, 153, 142, 1)',
+                backgroundColor: 'rgba(17, 153, 142, 0.1)',
+                fill: true,
+                tension: 0.4,
+                borderWidth: 3
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '₹' + value.toLocaleString();
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Create ETF Chart
+function createETFChart(data) {
+    const ctx = document.getElementById('etfChart');
+    if (!ctx) return;
+
+    savingsChartInstances.etf = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: data.months,
+            datasets: [{
+                label: 'ETF Investments',
+                data: data.savings.etf,
+                borderColor: 'rgba(253, 187, 45, 1)',
+                backgroundColor: 'rgba(253, 187, 45, 0.1)',
+                fill: true,
+                tension: 0.4,
+                borderWidth: 3
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '₹' + value.toLocaleString();
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Create Total Savings Chart
+function createTotalSavingsChart(data) {
+    const ctx = document.getElementById('totalSavingsChart');
+    if (!ctx) return;
+
+    const totalSavingsData = data.months.map((_, index) => 
+        (data.savings.sip[index] || 0) +
+        (data.savings.fixed_deposit_one[index] || 0) +
+        (data.savings.fixed_deposit_two[index] || 0) +
+        (data.savings.etf[index] || 0)
+    );
+
+    savingsChartInstances.totalSavings = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: data.months,
+            datasets: [{
+                label: 'Total Investments',
+                data: totalSavingsData,
+                borderColor: 'rgba(255, 154, 158, 1)',
+                backgroundColor: 'rgba(255, 154, 158, 0.1)',
+                fill: true,
+                tension: 0.4,
+                borderWidth: 3
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '₹' + value.toLocaleString();
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Create Savings Allocation Pie Chart
+function createSavingsAllocationChart(data) {
+    const ctx = document.getElementById('savingsAllocationChart');
+    if (!ctx) return;
+
+    const latestIndex = data.months.length - 1;
+    const sipAmount = data.savings.sip[latestIndex] || 0;
+    const fdAmount = (data.savings.fixed_deposit_one[latestIndex] || 0) + (data.savings.fixed_deposit_two[latestIndex] || 0);
+    const etfAmount = data.savings.etf[latestIndex] || 0;
+
+    savingsChartInstances.allocation = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['SIP', 'Fixed Deposits', 'ETF'],
+            datasets: [{
+                data: [sipAmount, fdAmount, etfAmount],
+                backgroundColor: [
+                    'rgba(17, 153, 142, 0.8)',
+                    'rgba(102, 126, 234, 0.8)',
+                    'rgba(253, 187, 45, 0.8)'
+                ],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+}
+
+// Create Savings Growth Chart
+function createSavingsGrowthChart(data) {
+    const ctx = document.getElementById('savingsGrowthChart');
+    if (!ctx) return;
+
+    // Calculate growth rates
+    const totalSavingsData = data.months.map((_, index) => 
+        (data.savings.sip[index] || 0) +
+        (data.savings.fixed_deposit_one[index] || 0) +
+        (data.savings.fixed_deposit_two[index] || 0) +
+        (data.savings.etf[index] || 0)
+    );
+
+    const growthRates = totalSavingsData.map((current, index) => {
+        if (index === 0) return 0;
+        const previous = totalSavingsData[index - 1];
+        return previous > 0 ? ((current - previous) / previous) * 100 : 0;
+    });
+
+    savingsChartInstances.growth = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: data.months,
+            datasets: [{
+                label: 'Growth Rate (%)',
+                data: growthRates,
+                backgroundColor: growthRates.map(rate => 
+                    rate >= 0 ? 'rgba(40, 167, 69, 0.8)' : 'rgba(220, 53, 69, 0.8)'
+                ),
+                borderColor: growthRates.map(rate => 
+                    rate >= 0 ? 'rgba(40, 167, 69, 1)' : 'rgba(220, 53, 69, 1)'
+                ),
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    ticks: {
+                        callback: function(value) {
+                            return value.toFixed(1) + '%';
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Create Yearly Comparison Chart
+function createYearlyComparisonChart(data) {
+    const ctx = document.getElementById('yearlyComparisonChart');
+    if (!ctx) return;
+
+    savingsChartInstances.yearlyComparison = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: data.months,
+            datasets: [
+                {
+                    label: 'SIP',
+                    data: data.savings.sip,
+                    backgroundColor: 'rgba(17, 153, 142, 0.8)',
+                    borderColor: 'rgba(17, 153, 142, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Fixed Deposits',
+                    data: data.months.map((_, index) => 
+                        (data.savings.fixed_deposit_one[index] || 0) + (data.savings.fixed_deposit_two[index] || 0)
+                    ),
+                    backgroundColor: 'rgba(102, 126, 234, 0.8)',
+                    borderColor: 'rgba(102, 126, 234, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'ETF',
+                    data: data.savings.etf,
+                    backgroundColor: 'rgba(253, 187, 45, 0.8)',
+                    borderColor: 'rgba(253, 187, 45, 1)',
+                    borderWidth: 1
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                    stacked: true
+                },
+                y: {
+                    stacked: true,
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '₹' + value.toLocaleString();
+                        }
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'top'
+                }
+            }
+        }
+    });
+}
+
+// Update summary cards
+function updateSavingsSummaryCards(data) {
+    const latestIndex = data.months.length - 1;
+    const previousIndex = Math.max(0, latestIndex - 1);
+
+    // Calculate current amounts
+    const currentSIP = data.savings.sip[latestIndex] || 0;
+    const currentFD = (data.savings.fixed_deposit_one[latestIndex] || 0) + (data.savings.fixed_deposit_two[latestIndex] || 0);
+    const currentETF = data.savings.etf[latestIndex] || 0;
+    const currentTotal = currentSIP + currentFD + currentETF;
+
+    // Calculate previous amounts for growth
+    const previousSIP = data.savings.sip[previousIndex] || 0;
+    const previousFD = (data.savings.fixed_deposit_one[previousIndex] || 0) + (data.savings.fixed_deposit_two[previousIndex] || 0);
+    const previousETF = data.savings.etf[previousIndex] || 0;
+    const previousTotal = previousSIP + previousFD + previousETF;
+
+    // Calculate growth percentages
+    const calculateGrowth = (current, previous) => {
+        if (previous === 0) return current > 0 ? 100 : 0;
+        return ((current - previous) / previous) * 100;
+    };
+
+    const totalGrowth = calculateGrowth(currentTotal, previousTotal);
+    const sipGrowth = calculateGrowth(currentSIP, previousSIP);
+    const fdGrowth = calculateGrowth(currentFD, previousFD);
+    const etfGrowth = calculateGrowth(currentETF, previousETF);
+
+    // Update card contents
+    document.getElementById('totalSavingsAmount').textContent = '₹' + currentTotal.toLocaleString();
+    document.getElementById('totalSavingsGrowth').textContent = `Growth: ${totalGrowth.toFixed(1)}%`;
+
+    document.getElementById('sipAmount').textContent = '₹' + currentSIP.toLocaleString();
+    document.getElementById('sipGrowth').textContent = `Growth: ${sipGrowth.toFixed(1)}%`;
+
+    document.getElementById('fixedDepositAmount').textContent = '₹' + currentFD.toLocaleString();
+    document.getElementById('fixedDepositGrowth').textContent = `Growth: ${fdGrowth.toFixed(1)}%`;
+
+    document.getElementById('etfAmount').textContent = '₹' + currentETF.toLocaleString();
+    document.getElementById('etfGrowth').textContent = `Growth: ${etfGrowth.toFixed(1)}%`;
+}
+
+// Initialize charts when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Savings dashboard loaded');
+    
+    // Wait for Chart.js to load
+    function waitForChart(callback) {
+        if (typeof Chart !== 'undefined') {
+            console.log('Chart.js is available');
+            callback();
+        } else {
+            console.log('Waiting for Chart.js to load...');
+            setTimeout(() => waitForChart(callback), 100);
+        }
+    }
+    
+    waitForChart(() => {
+        console.log('Starting savings charts initialization');
+        updateSavingsCharts();
+    });
+});
+</script>
+{% endblock %}
