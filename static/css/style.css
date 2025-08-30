@@ -165,7 +165,14 @@ body {
         margin-right: -4px !important;
     }
 
-    .col, .col-12, .col-md-6, .col-md-4, .col-md-3, .col-md-8, .col-lg-6, .col-lg-4 {
+    .col,
+    .col-12,
+    .col-md-6,
+    .col-md-4,
+    .col-md-3,
+    .col-md-8,
+    .col-lg-6,
+    .col-lg-4 {
         padding-left: 4px !important;
         padding-right: 4px !important;
         margin-bottom: 12px !important;
@@ -197,7 +204,8 @@ body {
 
     .table {
         margin-bottom: 0 !important;
-        min-width: 600px; /* Ensure table doesn't get too compressed */
+        min-width: 600px;
+        /* Ensure table doesn't get too compressed */
     }
 
     .table th,
@@ -421,56 +429,55 @@ body {
 
 }
 
-    .btn {
-        font-size: 0.9rem;
-        padding: 12px 16px;
-        min-height: 44px;
-        /* Touch-friendly size */
-    }
+.btn {
+    font-size: 0.9rem;
+    padding: 12px 16px;
+    min-height: 44px;
+    /* Touch-friendly size */
+}
 
-    .btn-lg {
-        padding: 16px 24px;
-        font-size: 1rem;
-    }
+.btn-lg {
+    padding: 16px 24px;
+    font-size: 1rem;
+}
 
-    /* Table responsiveness */
-    .table-responsive {
-        font-size: 0.85rem;
-        border-radius: 8px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    }
+/* Table responsiveness */
+.table-responsive {
+    font-size: 0.85rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
 
-    .table th,
-    .table td {
-        padding: 8px 6px;
-        vertical-align: middle;
-    }
+.table th,
+.table td {
+    padding: 8px 6px;
+    vertical-align: middle;
+}
 
-    /* Input groups mobile friendly */
-    .input-group-text {
-        min-width: 45px;
-        justify-content: center;
-    }
+/* Input groups mobile friendly */
+.input-group-text {
+    min-width: 45px;
+    justify-content: center;
+}
 
-    /* Summary section mobile */
-    .summary-section {
-        margin: 1rem 0;
-        padding: 1rem;
-    }
+/* Summary section mobile */
+.summary-section {
+    margin: 1rem 0;
+    padding: 1rem;
+}
 
-    .summary-card {
-        margin-bottom: 0.5rem;
-        padding: 0.75rem;
-    }
+.summary-card {
+    margin-bottom: 0.5rem;
+    padding: 0.75rem;
+}
 
-    /* Modal improvements for mobile */
-    .modal-dialog {
-        margin: 10px;
-    }
+/* Modal improvements for mobile */
+.modal-dialog {
+    margin: 10px;
+}
 
-    .modal-content {
-        border-radius: 15px;
-    }
+.modal-content {
+    border-radius: 15px;
 }
 
 /* Enhanced Navigation */
