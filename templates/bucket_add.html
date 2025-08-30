@@ -1,0 +1,275 @@
+{% extends "base.html" %}
+
+{% block title %}Add Bucket Item - Budget Planner{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="budget-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h1><i class="fas fa-plus me-2"></i>Add New Bucket Item</h1>
+                        <p class="text-muted">Add a new goal, dream, or future purchase to your bucket list</p>
+                    </div>
+                    <a href="/bucket-list" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Back to List
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-star me-2"></i>Create New Bucket List Item</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post" action="/bucket-list" id="bucketForm">
+                        <div class="row">
+                            <div class="col-md-8 mb-3">
+                                <label for="name" class="form-label">Item Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control form-control-lg" id="name" name="name" required 
+                                       placeholder="e.g., iPhone 15 Pro, Trip to Japan, New Car">
+                                <div class="form-text">Give your item a descriptive name</div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="category" class="form-label">Category</label>
+                                <select class="form-select form-select-lg" id="category" name="category">
+                                    <option value="General">🎯 General</option>
+                                    <option value="Trips">✈️ Trips</option>
+                                    <option value="Gadgets">📱 Gadgets</option>
+                                    <option value="Home">🏠 Home</option>
+                                    <option value="Education">📚 Education</option>
+                                    <option value="Health">🏥 Health</option>
+                                    <option value="Car">🚗 Car</option>
+                                    <option value="Fashion">👗 Fashion</option>
+                                    <option value="Sports">⚽ Sports</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="price" class="form-label">Estimated Price (₹) <span class="text-danger">*</span></label>
+                                <div class="input-group input-group-lg">
+                                    <span class="input-group-text">₹</span>
+                                    <input type="number" class="form-control" id="price" name="price" step="0.01" required 
+                                           placeholder="0.00" min="0">
+                                </div>
+                                <div class="form-text">How much do you think it will cost?</div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="priority" class="form-label">Priority</label>
+                                <select class="form-select form-select-lg" id="priority" name="priority">
+                                    <option value="Low">🟢 Low Priority</option>
+                                    <option value="Medium" selected>🟡 Medium Priority</option>
+                                    <option value="High">🔴 High Priority</option>
+                                </select>
+                                <div class="form-text">How important is this to you?</div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="target_date" class="form-label">Target Timeline</label>
+                                <input type="text" class="form-control form-control-lg" id="target_date" name="target_date" 
+                                       placeholder="e.g., December 2025, Next Summer">
+                                <div class="form-text">When do you want to achieve this?</div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="description" class="form-label">Description & Notes</label>
+                            <textarea class="form-control" id="description" name="description" rows="4" 
+                                      placeholder="Tell us more about this item... Why do you want it? What makes it special? Any specific details or requirements?"></textarea>
+                            <div class="form-text">Add any additional details about this bucket list item</div>
+                        </div>
+
+                        <!-- Preview Section -->
+                        <div class="card bg-light mb-4" id="previewCard" style="display: none;">
+                            <div class="card-header">
+                                <h6 class="mb-0"><i class="fas fa-eye me-2"></i>Preview</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h5 id="previewName">Item Name</h5>
+                                        <p class="text-muted mb-1" id="previewDescription">Description</p>
+                                        <small class="text-info" id="previewTarget"></small>
+                                    </div>
+                                    <div class="text-end">
+                                        <h4 class="text-primary mb-0" id="previewPrice">₹0.00</h4>
+                                        <div>
+                                            <span class="badge bg-secondary" id="previewCategory">Category</span>
+                                            <span class="badge" id="previewPriority">Priority</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="/bucket-list" class="btn btn-secondary btn-lg">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-plus me-2"></i>Add to Bucket List
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Tips Card -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-lightbulb me-2"></i>Tips for Better Bucket List Items</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <ul class="list-unstyled">
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Be specific with your goals</li>
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Research realistic prices</li>
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Set achievable timelines</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <ul class="list-unstyled">
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Add detailed descriptions</li>
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Prioritize what matters most</li>
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Break down big goals</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.card {
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.form-control-lg, .form-select-lg {
+    border-radius: 8px;
+}
+
+.input-group-text {
+    background-color: #e9ecef;
+    border-right: none;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+}
+
+#previewCard {
+    transition: all 0.3s ease;
+}
+
+.priority-badge {
+    font-size: 0.8rem;
+}
+
+@media (max-width: 768px) {
+    .budget-header .d-flex {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('bucketForm');
+    const nameInput = document.getElementById('name');
+    const priceInput = document.getElementById('price');
+    const categorySelect = document.getElementById('category');
+    const prioritySelect = document.getElementById('priority');
+    const targetInput = document.getElementById('target_date');
+    const descriptionInput = document.getElementById('description');
+    
+    const previewCard = document.getElementById('previewCard');
+    const previewName = document.getElementById('previewName');
+    const previewPrice = document.getElementById('previewPrice');
+    const previewCategory = document.getElementById('previewCategory');
+    const previewPriority = document.getElementById('previewPriority');
+    const previewTarget = document.getElementById('previewTarget');
+    const previewDescription = document.getElementById('previewDescription');
+    
+    function updatePreview() {
+        const name = nameInput.value.trim();
+        const price = parseFloat(priceInput.value) || 0;
+        const category = categorySelect.value;
+        const priority = prioritySelect.value;
+        const target = targetInput.value.trim();
+        const description = descriptionInput.value.trim();
+        
+        if (name || price > 0) {
+            previewCard.style.display = 'block';
+            
+            previewName.textContent = name || 'Item Name';
+            previewPrice.textContent = `${price.toFixed(2)}`;
+            previewCategory.textContent = category;
+            previewDescription.textContent = description || 'No description provided';
+            
+            // Update priority badge
+            previewPriority.textContent = priority;
+            previewPriority.className = 'badge';
+            if (priority === 'High') {
+                previewPriority.classList.add('bg-danger');
+            } else if (priority === 'Medium') {
+                previewPriority.classList.add('bg-warning');
+            } else {
+                previewPriority.classList.add('bg-secondary');
+            }
+            
+            // Update target
+            if (target) {
+                previewTarget.textContent = `🎯 Target: ${target}`;
+                previewTarget.style.display = 'block';
+            } else {
+                previewTarget.style.display = 'none';
+            }
+        } else {
+            previewCard.style.display = 'none';
+        }
+    }
+    
+    // Add event listeners for real-time preview
+    [nameInput, priceInput, categorySelect, prioritySelect, targetInput, descriptionInput].forEach(input => {
+        input.addEventListener('input', updatePreview);
+        input.addEventListener('change', updatePreview);
+    });
+    
+    // Form validation
+    form.addEventListener('submit', function(e) {
+        const name = nameInput.value.trim();
+        const price = parseFloat(priceInput.value);
+        
+        if (!name) {
+            e.preventDefault();
+            nameInput.focus();
+            alert('Please enter an item name');
+            return;
+        }
+        
+        if (!price || price <= 0) {
+            e.preventDefault();
+            priceInput.focus();
+            alert('Please enter a valid price');
+            return;
+        }
+    });
+    
+    // Auto-focus on name input
+    nameInput.focus();
+});
+</script>
+{% endblock %}

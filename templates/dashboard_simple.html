@@ -1,0 +1,519 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Budget Planner{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Dashboard Header -->
+    <div class="dashboard-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2><i class="fas fa-tachometer-alt me-3"></i>Dashboard</h2>
+                <p class="mb-0">Welcome back, {{ user.username }}! Here's your financial overview.</p>
+            </div>
+            <div class="dashboard-stats">
+                <div class="stat-item">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>{{ current_month }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if all_entries %}
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card stats-card income-card">
+                <div class="card-body">
+                    <div class="stats-icon">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                    <div class="stats-content">
+                        <h5>Total Income</h5>
+                        <h3>₹{{ "{:.2f}".format(total_income) }}</h3>
+                        <small class="text-light">This month</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stats-card expense-card">
+                <div class="card-body">
+                    <div class="stats-icon">
+                        <i class="fas fa-credit-card"></i>
+                    </div>
+                    <div class="stats-content">
+                        <h5>Total Expenses</h5>
+                        <h3>₹{{ "{:.2f}".format(total_expenses) }}</h3>
+                        <small class="text-light">This month</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stats-card savings-card">
+                <div class="card-body">
+                    <div class="stats-icon">
+                        <i class="fas fa-piggy-bank"></i>
+                    </div>
+                    <div class="stats-content">
+                        <h5>Net Savings</h5>
+                        <h3>₹{{ "{:.2f}".format(total_income - total_expenses) }}</h3>
+                        <small class="text-light">This month</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% if bucket_items %}
+        <div class="col-md-3">
+            <div class="card stats-card progress-card">
+                <div class="card-body">
+                    <div class="stats-icon">
+                        <i class="fas fa-chart-pie"></i>
+                    </div>
+                    <div class="stats-content">
+                        <h5>Achievement Rate</h5>
+                        {% if total_bucket_items > 0 %}
+                        {% set completion_rate = (completed_bucket_items / total_bucket_items * 100)|round(1) %}
+                        <h3>{{ completion_rate }}%</h3>
+                        <div class="progress mt-2" style="height: 8px;">
+                            <div class="progress-bar bg-success" role="progressbar" style="width: {{ completion_rate }}%"></div>
+                        </div>
+                        {% else %}
+                        <h3>0%</h3>
+                        <small class="text-muted">No goals set yet</small>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Chart Controls -->
+    <div class="row mb-3">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i>Financial Charts</h5>
+                        <div>
+                            <label for="timespanSelect" class="form-label me-2">Time Period:</label>
+                            <select class="form-select d-inline-block w-auto" id="timespanSelect" onchange="updateCharts()">
+                                <option value="all">All Time</option>
+                                <option value="current_month">Current Month</option>
+                                <option value="quarter">Current Quarter</option>
+                                <option value="half_year">Current Half Year</option>
+                                <option value="current_year">Current Year</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card chart-card">
+                <div class="card-header">
+                    <h5><i class="fas fa-chart-bar me-2"></i>Income vs Expenses</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="incomeExpenseChart" style="height: 300px;"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card chart-card">
+                <div class="card-header">
+                    <h5><i class="fas fa-chart-pie me-2"></i>Expense Breakdown</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="expenseBreakdownChart" style="height: 300px;"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card chart-card">
+                <div class="card-header">
+                    <h5><i class="fas fa-chart-line me-2"></i>Income Trend</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="incomeTrendChart" style="height: 300px;"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card chart-card">
+                <div class="card-header">
+                    <h5><i class="fas fa-chart-area me-2"></i>Savings Trend</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="savingsTrendChart" style="height: 300px;"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if not all_entries %}
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-body text-center">
+                    <i class="fas fa-chart-bar fa-4x text-muted mb-3"></i>
+                    <h4>No Data Available</h4>
+                    <p class="text-muted">Start by adding your budget entries to see beautiful charts and insights.</p>
+                    <div class="d-flex justify-content-center gap-3">
+                        <a href="/budget" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>Add Budget Entry
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+let chartInstances = {};
+
+// Utility function to wait for Chart.js to load
+function waitForChart(callback) {
+    if (typeof Chart !== 'undefined') {
+        console.log('Chart.js is available');
+        callback();
+    } else {
+        console.log('Waiting for Chart.js to load...');
+        setTimeout(() => waitForChart(callback), 100);
+    }
+}
+
+async function loadChartData(timespan = 'all') {
+    try {
+        console.log('Fetching chart data for timespan:', timespan);
+        const response = await fetch(`/api/chart-data?timespan=${timespan}`);
+        
+        if (!response.ok) {
+            console.error('Failed to fetch chart data:', response.status, response.statusText);
+            return null;
+        }
+        
+        const data = await response.json();
+        console.log('Chart data received:', data);
+        return data;
+    } catch (error) {
+        console.error('Error loading chart data:', error);
+        return null;
+    }
+}
+
+function destroyExistingCharts() {
+    Object.keys(chartInstances).forEach(key => {
+        if (chartInstances[key] && typeof chartInstances[key].destroy === 'function') {
+            chartInstances[key].destroy();
+        }
+    });
+    chartInstances = {};
+}
+
+async function updateCharts() {
+    const timespanSelect = document.getElementById('timespanSelect');
+    if (!timespanSelect) {
+        console.error('Timespan select not found');
+        return;
+    }
+    
+    const timespan = timespanSelect.value;
+    const data = await loadChartData(timespan);
+    
+    if (!data) {
+        console.error('No chart data received');
+        return;
+    }
+
+    destroyExistingCharts();
+    initializeCharts(data);
+}
+
+function initializeCharts(data) {
+    if (!data || !data.months || data.months.length === 0) {
+        console.warn('No data available for charts');
+        showNoDataMessage();
+        return;
+    }
+    
+    console.log('Initializing charts with data for', data.months.length, 'months');
+    
+    // Check if Chart.js is available
+    if (typeof Chart === 'undefined') {
+        console.error('Chart.js library is not loaded');
+        return;
+    }
+    
+    createIncomeExpenseChart(data);
+    createExpenseBreakdownChart(data);
+    createIncomeTrendChart(data);
+    createSavingsTrendChart(data);
+}
+
+function showNoDataMessage() {
+    const canvasIds = ['incomeExpenseChart', 'expenseBreakdownChart', 'incomeTrendChart', 'savingsTrendChart'];
+    
+    canvasIds.forEach(id => {
+        const canvas = document.getElementById(id);
+        if (canvas) {
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.font = '16px Arial';
+            ctx.fillStyle = '#999';
+            ctx.textAlign = 'center';
+            ctx.fillText('No data available', canvas.width / 2, canvas.height / 2);
+        }
+    });
+}
+
+function createIncomeExpenseChart(data) {
+    const canvas = document.getElementById('incomeExpenseChart');
+    if (!canvas) {
+        console.warn('incomeExpenseChart canvas not found');
+        return;
+    }
+    
+    try {
+        chartInstances.incomeExpense = new Chart(canvas, {
+            type: 'bar',
+            data: {
+                labels: data.months,
+                datasets: [
+                    {
+                        label: 'Income',
+                        data: data.income.total,
+                        backgroundColor: 'rgba(40, 167, 69, 0.8)',
+                        borderColor: 'rgba(40, 167, 69, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Expenses',
+                        data: data.expenses.total,
+                        backgroundColor: 'rgba(220, 53, 69, 0.8)',
+                        borderColor: 'rgba(220, 53, 69, 1)',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return '₹' + value.toFixed(0);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        console.log('Income vs Expenses chart created successfully');
+    } catch (error) {
+        console.error('Error creating income vs expenses chart:', error);
+    }
+}
+
+function createExpenseBreakdownChart(data) {
+    const canvas = document.getElementById('expenseBreakdownChart');
+    if (!canvas) {
+        console.warn('expenseBreakdownChart canvas not found');
+        return;
+    }
+    
+    const latestIndex = data.months.length - 1;
+    
+    try {
+        chartInstances.expenseBreakdown = new Chart(canvas, {
+            type: 'pie',
+            data: {
+                labels: ['Mobile', 'WiFi', 'EMI 1', 'EMI 2', 'EMI 3', 'EMI 4', 'Food', 'Rent', 'Credit Card 1', 'Credit Card 2', 'Shopping', 'Travel', 'Other'],
+                datasets: [{
+                    data: [
+                        data.expenses.mobile_recharge[latestIndex] || 0,
+                        data.expenses.wifi[latestIndex] || 0,
+                        data.expenses.emi_one[latestIndex] || 0,
+                        data.expenses.emi_two[latestIndex] || 0,
+                        data.expenses.emi_three[latestIndex] || 0,
+                        data.expenses.emi_four[latestIndex] || 0,
+                        data.expenses.food[latestIndex] || 0,
+                        data.expenses.rent[latestIndex] || 0,
+                        data.expenses.creditcard_one[latestIndex] || 0,
+                        data.expenses.creditcard_two[latestIndex] || 0,
+                        data.expenses.shopping[latestIndex] || 0,
+                        data.expenses.travel[latestIndex] || 0,
+                        data.expenses.other_expenses[latestIndex] || 0
+                    ],
+                    backgroundColor: [
+                        '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0',
+                        '#9966FF', '#FF9F40', '#FF6384', '#C9CBCF',
+                        '#4BC0C0', '#36A2EB', '#FFCE56', '#9966FF', '#FF9F40'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+        console.log('Expense breakdown chart created successfully');
+    } catch (error) {
+        console.error('Error creating expense breakdown chart:', error);
+    }
+}
+
+function createIncomeTrendChart(data) {
+    const canvas = document.getElementById('incomeTrendChart');
+    if (!canvas) {
+        console.warn('incomeTrendChart canvas not found');
+        return;
+    }
+    
+    try {
+        chartInstances.incomeTrend = new Chart(canvas, {
+            type: 'line',
+            data: {
+                labels: data.months,
+                datasets: [
+                    {
+                        label: 'Salary',
+                        data: data.income.salary,
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    },
+                    {
+                        label: 'Freelancing 1',
+                        data: data.income.freelancing_one,
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    },
+                    {
+                        label: 'Freelancing 2',
+                        data: data.income.freelancing_two,
+                        borderColor: 'rgba(255, 206, 86, 1)',
+                        backgroundColor: 'rgba(255, 206, 86, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return '₹' + value.toFixed(0);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        console.log('Income trend chart created successfully');
+    } catch (error) {
+        console.error('Error creating income trend chart:', error);
+    }
+}
+
+function createSavingsTrendChart(data) {
+    const canvas = document.getElementById('savingsTrendChart');
+    if (!canvas) {
+        console.warn('savingsTrendChart canvas not found');
+        return;
+    }
+    
+    const savingsData = data.income.total.map((income, index) => income - data.expenses.total[index]);
+    
+    try {
+        chartInstances.savingsTrend = new Chart(canvas, {
+            type: 'line',
+            data: {
+                labels: data.months,
+                datasets: [{
+                    label: 'Net Savings',
+                    data: savingsData,
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top'
+                    }
+                },
+                scales: {
+                    y: {
+                        ticks: {
+                            callback: function(value) {
+                                return '₹' + value.toFixed(0);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        console.log('Savings trend chart created successfully');
+    } catch (error) {
+        console.error('Error creating savings trend chart:', error);
+    }
+}
+
+// Initialize charts when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM content loaded');
+    
+    waitForChart(() => {
+        console.log('Starting chart initialization');
+        updateCharts();
+    });
+});
+</script>
+{% endblock %}

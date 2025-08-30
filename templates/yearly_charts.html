@@ -1,0 +1,757 @@
+{% extends "base.html" %}
+
+{% block title %}Yearly Financial Charts - Budget Planner{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="dashboard-header">
+            <h1><i class="fas fa-chart-line me-2"></i>Yearly Financial Charts</h1>
+            <p class="text-white">Comprehensive yearly budget analysis and trends for {{ user.username }}</p>
+        </div>
+    </div>
+</div>
+
+<!-- Year Selection -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-calendar-alt me-2"></i>Select Year for Analysis</h5>
+                    <div>
+                        <label for="yearSelect" class="form-label me-2">Year:</label>
+                        <select class="form-select d-inline-block w-auto" id="yearSelect" onchange="loadYearlyData()">
+                            {% for year in available_years %}
+                            <option value="{{ year }}" {% if loop.first %}selected{% endif %}>{{ year }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Indicator -->
+<div id="loadingIndicator" class="text-center" style="display: none;">
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+    <p class="mt-2">Loading yearly data...</p>
+</div>
+
+<!-- Year Summary Cards -->
+<div id="summaryCards" class="row mb-4" style="display: none;">
+    <div class="col-md-3">
+        <div class="card yearly-summary-card income-card">
+            <div class="card-body">
+                <div class="stats-icon">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+                <div class="stats-content">
+                    <h5>Data Coverage</h5>
+                    <h3 id="monthsWithData">-</h3>
+                    <small class="text-muted">Months with data</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card yearly-summary-card income-card">
+            <div class="card-body">
+                <div class="stats-icon">
+                    <i class="fas fa-money-bill-wave"></i>
+                </div>
+                <div class="stats-content">
+                    <h5>Total Income</h5>
+                    <h3 id="totalIncome">₹0.00</h3>
+                    <small class="text-muted" id="avgIncome">Avg: $0.00/month</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card yearly-summary-card expense-card">
+            <div class="card-body">
+                <div class="stats-icon">
+                    <i class="fas fa-credit-card"></i>
+                </div>
+                <div class="stats-content">
+                    <h5>Total Expenses</h5>
+                    <h3 id="totalExpenses">₹0.00</h3>
+                    <small class="text-muted" id="avgExpenses">Avg: $0.00/month</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card yearly-summary-card savings-card">
+            <div class="card-body">
+                <div class="stats-icon">
+                    <i class="fas fa-piggy-bank"></i>
+                </div>
+                <div class="stats-content">
+                    <h5>Total Savings</h5>
+                    <h3 id="totalSavings">₹0.00</h3>
+                    <small class="text-muted" id="avgSavings">Avg: $0.00/month</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Section -->
+<div id="chartsSection" style="display: none;">
+    <!-- Monthly Overview -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card yearly-chart-card">
+                <div class="card-header bg-primary text-white">
+                    <h5><i class="fas fa-chart-bar me-2"></i>Monthly Income vs Expenses vs Savings</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="monthlyOverviewChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Income and Expense Breakdown -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card yearly-chart-card">
+                <div class="card-header bg-success text-white">
+                    <h5><i class="fas fa-chart-pie me-2"></i>Income Sources Breakdown</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="incomeBreakdownChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card yearly-chart-card">
+                <div class="card-header bg-danger text-white">
+                    <h5><i class="fas fa-chart-doughnut me-2"></i>Expense Categories Breakdown</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="expenseBreakdownChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Trend Analysis -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card yearly-chart-card">
+                <div class="card-header bg-info text-white">
+                    <h5><i class="fas fa-chart-line me-2"></i>Income Trend</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="incomeTrendChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card yearly-chart-card">
+                <div class="card-header bg-warning text-dark">
+                    <h5><i class="fas fa-chart-area me-2"></i>Savings Trend</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="savingsTrendChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Expense Analysis -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card yearly-chart-card">
+                <div class="card-header bg-secondary text-white">
+                    <h5><i class="fas fa-home me-2"></i>Fixed Expenses Trend</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="fixedExpensesChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card yearly-chart-card">
+                <div class="card-header bg-dark text-white">
+                    <h5><i class="fas fa-shopping-cart me-2"></i>Variable Expenses Trend</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="variableExpensesChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Monthly Comparison -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card yearly-chart-card">
+                <div class="card-header bg-gradient-primary text-white">
+                    <h5><i class="fas fa-chart-column me-2"></i>Month-to-Month Comparison</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="monthlyComparisonChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- No Data Message -->
+<div id="noDataMessage" class="row" style="display: none;">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body text-center">
+                <i class="fas fa-chart-bar fa-4x text-muted mb-3"></i>
+                <h4>No Data Available</h4>
+                <p class="text-muted">No budget entries found for the selected year.</p>
+                <div class="d-flex justify-content-center gap-3">
+                    <a href="/budget" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Add Budget Entry
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+let yearlyChartInstances = {};
+let currentYearData = null;
+
+// Load data for selected year
+async function loadYearlyData() {
+    const year = document.getElementById('yearSelect').value;
+    
+    // Show loading indicator
+    document.getElementById('loadingIndicator').style.display = 'block';
+    document.getElementById('summaryCards').style.display = 'none';
+    document.getElementById('chartsSection').style.display = 'none';
+    document.getElementById('noDataMessage').style.display = 'none';
+
+    try {
+        const response = await fetch(`/api/yearly-chart-data/${year}`);
+        const data = await response.json();
+        
+        currentYearData = data;
+        
+        // Hide loading indicator
+        document.getElementById('loadingIndicator').style.display = 'none';
+        
+        if (data.months.length === 0) {
+            document.getElementById('noDataMessage').style.display = 'block';
+            return;
+        }
+        
+        // Update summary cards
+        updateSummaryCards(data);
+        
+        // Show summary and charts
+        document.getElementById('summaryCards').style.display = 'flex';
+        document.getElementById('chartsSection').style.display = 'block';
+        
+        // Destroy existing charts
+        Object.values(yearlyChartInstances).forEach(chart => {
+            if (chart) chart.destroy();
+        });
+        yearlyChartInstances = {};
+        
+        // Create new charts
+        createMonthlyOverviewChart(data);
+        createIncomeBreakdownChart(data);
+        createExpenseBreakdownChart(data);
+        createIncomeTrendChart(data);
+        createSavingsTrendChart(data);
+        createFixedExpensesChart(data);
+        createVariableExpensesChart(data);
+        createMonthlyComparisonChart(data);
+        
+    } catch (error) {
+        console.error('Error loading yearly data:', error);
+        document.getElementById('loadingIndicator').style.display = 'none';
+        document.getElementById('noDataMessage').style.display = 'block';
+    }
+}
+
+// Update summary cards
+function updateSummaryCards(data) {
+    document.getElementById('monthsWithData').textContent = data.summary.months_with_data;
+    document.getElementById('totalIncome').textContent = '₹' + data.summary.total_income.toFixed(2);
+    document.getElementById('totalExpenses').textContent = '₹' + data.summary.total_expenses.toFixed(2);
+    document.getElementById('totalSavings').textContent = '₹' + data.summary.total_savings.toFixed(2);
+    document.getElementById('avgIncome').textContent = 'Avg: $' + data.summary.average_monthly_income.toFixed(2) + '/month';
+    document.getElementById('avgExpenses').textContent = 'Avg: $' + data.summary.average_monthly_expenses.toFixed(2) + '/month';
+    document.getElementById('avgSavings').textContent = 'Avg: $' + data.summary.average_monthly_savings.toFixed(2) + '/month';
+}
+
+// Chart creation functions
+function createMonthlyOverviewChart(data) {
+    const ctx = document.getElementById('monthlyOverviewChart');
+    yearlyChartInstances.monthlyOverview = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: data.months,
+            datasets: [
+                {
+                    label: 'Income',
+                    data: data.monthly_totals.income,
+                    backgroundColor: 'rgba(40, 167, 69, 0.8)',
+                    borderColor: 'rgba(40, 167, 69, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Expenses',
+                    data: data.monthly_totals.expenses,
+                    backgroundColor: 'rgba(220, 53, 69, 0.8)',
+                    borderColor: 'rgba(220, 53, 69, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Savings',
+                    data: data.monthly_totals.savings,
+                    backgroundColor: 'rgba(23, 162, 184, 0.8)',
+                    borderColor: 'rgba(23, 162, 184, 1)',
+                    borderWidth: 1
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '₹' + value.toLocaleString();
+                        }
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.dataset.label + ': ₹' + context.parsed.y.toLocaleString();
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+function createIncomeBreakdownChart(data) {
+    const ctx = document.getElementById('incomeBreakdownChart');
+    
+    // Calculate totals for pie chart
+    const salaryTotal = data.income_breakdown.salary.reduce((a, b) => a + b, 0);
+    const freelance1Total = data.income_breakdown.freelancing_one.reduce((a, b) => a + b, 0);
+    const freelance2Total = data.income_breakdown.freelancing_two.reduce((a, b) => a + b, 0);
+    
+    yearlyChartInstances.incomeBreakdown = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Salary', 'Freelancing 1', 'Freelancing 2'],
+            datasets: [{
+                data: [salaryTotal, freelance1Total, freelance2Total],
+                backgroundColor: [
+                    'rgba(40, 167, 69, 0.8)',
+                    'rgba(255, 193, 7, 0.8)',
+                    'rgba(23, 162, 184, 0.8)'
+                ],
+                borderColor: [
+                    'rgba(40, 167, 69, 1)',
+                    'rgba(255, 193, 7, 1)',
+                    'rgba(23, 162, 184, 1)'
+                ],
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = ((context.parsed / total) * 100).toFixed(1);
+                            return context.label + ': ₹' + context.parsed.toLocaleString() + ' (' + percentage + '%)';
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+function createExpenseBreakdownChart(data) {
+    const ctx = document.getElementById('expenseBreakdownChart');
+    
+    // Calculate totals for each expense category
+    const expenseCategories = [
+        { label: 'Rent', total: data.expense_breakdown.rent.reduce((a, b) => a + b, 0) },
+        { label: 'Food', total: data.expense_breakdown.food.reduce((a, b) => a + b, 0) },
+        { label: 'EMIs', total: data.expense_breakdown.emi_total.reduce((a, b) => a + b, 0) },
+        { label: 'Credit Cards', total: data.expense_breakdown.creditcard_total.reduce((a, b) => a + b, 0) },
+        { label: 'Shopping', total: data.expense_breakdown.shopping.reduce((a, b) => a + b, 0) },
+        { label: 'Travel', total: data.expense_breakdown.travel.reduce((a, b) => a + b, 0) },
+        { label: 'Mobile/WiFi', total: data.expense_breakdown.mobile_recharge.reduce((a, b) => a + b, 0) + data.expense_breakdown.wifi.reduce((a, b) => a + b, 0) },
+        { label: 'Other', total: data.expense_breakdown.other_expenses.reduce((a, b) => a + b, 0) }
+    ];
+    
+    // Filter out zero values
+    const filteredCategories = expenseCategories.filter(cat => cat.total > 0);
+    
+    yearlyChartInstances.expenseBreakdown = new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: filteredCategories.map(cat => cat.label),
+            datasets: [{
+                data: filteredCategories.map(cat => cat.total),
+                backgroundColor: [
+                    'rgba(220, 53, 69, 0.8)',
+                    'rgba(255, 193, 7, 0.8)',
+                    'rgba(108, 117, 125, 0.8)',
+                    'rgba(102, 16, 242, 0.8)',
+                    'rgba(233, 30, 99, 0.8)',
+                    'rgba(255, 87, 34, 0.8)',
+                    'rgba(0, 150, 136, 0.8)',
+                    'rgba(121, 85, 72, 0.8)'
+                ],
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = ((context.parsed / total) * 100).toFixed(1);
+                            return context.label + ': ₹' + context.parsed.toLocaleString() + ' (' + percentage + '%)';
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+function createIncomeTrendChart(data) {
+    const ctx = document.getElementById('incomeTrendChart');
+    yearlyChartInstances.incomeTrend = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: data.months,
+            datasets: [
+                {
+                    label: 'Salary',
+                    data: data.income_breakdown.salary,
+                    borderColor: 'rgba(40, 167, 69, 1)',
+                    backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                    tension: 0.4,
+                    fill: false
+                },
+                {
+                    label: 'Freelancing 1',
+                    data: data.income_breakdown.freelancing_one,
+                    borderColor: 'rgba(255, 193, 7, 1)',
+                    backgroundColor: 'rgba(255, 193, 7, 0.1)',
+                    tension: 0.4,
+                    fill: false
+                },
+                {
+                    label: 'Freelancing 2',
+                    data: data.income_breakdown.freelancing_two,
+                    borderColor: 'rgba(23, 162, 184, 1)',
+                    backgroundColor: 'rgba(23, 162, 184, 0.1)',
+                    tension: 0.4,
+                    fill: false
+                },
+                {
+                    label: 'Total Income',
+                    data: data.monthly_totals.income,
+                    borderColor: 'rgba(0, 123, 255, 1)',
+                    backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                    tension: 0.4,
+                    borderWidth: 3,
+                    fill: true
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '₹' + value.toLocaleString();
+                        }
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: true
+                }
+            }
+        }
+    });
+}
+
+function createSavingsTrendChart(data) {
+    const ctx = document.getElementById('savingsTrendChart');
+    yearlyChartInstances.savingsTrend = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: data.months,
+            datasets: [{
+                label: 'Monthly Savings',
+                data: data.monthly_totals.savings,
+                borderColor: 'rgba(23, 162, 184, 1)',
+                backgroundColor: 'rgba(23, 162, 184, 0.2)',
+                tension: 0.4,
+                fill: true,
+                pointBackgroundColor: data.monthly_totals.savings.map(val => val >= 0 ? 'rgba(40, 167, 69, 1)' : 'rgba(220, 53, 69, 1)'),
+                pointBorderColor: data.monthly_totals.savings.map(val => val >= 0 ? 'rgba(40, 167, 69, 1)' : 'rgba(220, 53, 69, 1)')
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: false,
+                    ticks: {
+                        callback: function(value) {
+                            return '₹' + value.toLocaleString();
+                        }
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: true
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const value = context.parsed.y;
+                            const status = value >= 0 ? 'Positive' : 'Negative';
+                            return `${context.dataset.label}: $${value.toLocaleString()} (${status})`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+function createFixedExpensesChart(data) {
+    const ctx = document.getElementById('fixedExpensesChart');
+    yearlyChartInstances.fixedExpenses = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: data.months,
+            datasets: [
+                {
+                    label: 'Rent',
+                    data: data.expense_breakdown.rent,
+                    borderColor: 'rgba(220, 53, 69, 1)',
+                    backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                    tension: 0.4
+                },
+                {
+                    label: 'EMIs',
+                    data: data.expense_breakdown.emi_total,
+                    borderColor: 'rgba(108, 117, 125, 1)',
+                    backgroundColor: 'rgba(108, 117, 125, 0.1)',
+                    tension: 0.4
+                },
+                {
+                    label: 'Mobile/WiFi',
+                    data: data.months.map((_, i) => 
+                        data.expense_breakdown.mobile_recharge[i] + data.expense_breakdown.wifi[i]
+                    ),
+                    borderColor: 'rgba(0, 150, 136, 1)',
+                    backgroundColor: 'rgba(0, 150, 136, 0.1)',
+                    tension: 0.4
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '₹' + value.toLocaleString();
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+function createVariableExpensesChart(data) {
+    const ctx = document.getElementById('variableExpensesChart');
+    yearlyChartInstances.variableExpenses = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: data.months,
+            datasets: [
+                {
+                    label: 'Food',
+                    data: data.expense_breakdown.food,
+                    borderColor: 'rgba(255, 193, 7, 1)',
+                    backgroundColor: 'rgba(255, 193, 7, 0.1)',
+                    tension: 0.4
+                },
+                {
+                    label: 'Shopping',
+                    data: data.expense_breakdown.shopping,
+                    borderColor: 'rgba(233, 30, 99, 1)',
+                    backgroundColor: 'rgba(233, 30, 99, 0.1)',
+                    tension: 0.4
+                },
+                {
+                    label: 'Travel',
+                    data: data.expense_breakdown.travel,
+                    borderColor: 'rgba(255, 87, 34, 1)',
+                    backgroundColor: 'rgba(255, 87, 34, 0.1)',
+                    tension: 0.4
+                },
+                {
+                    label: 'Credit Cards',
+                    data: data.expense_breakdown.creditcard_total,
+                    borderColor: 'rgba(102, 16, 242, 1)',
+                    backgroundColor: 'rgba(102, 16, 242, 0.1)',
+                    tension: 0.4
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '₹' + value.toLocaleString();
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+function createMonthlyComparisonChart(data) {
+    const ctx = document.getElementById('monthlyComparisonChart');
+    yearlyChartInstances.monthlyComparison = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: data.monthly_comparison.months,
+            datasets: [
+                {
+                    label: 'Income',
+                    data: data.monthly_comparison.income,
+                    backgroundColor: 'rgba(40, 167, 69, 0.7)',
+                    borderColor: 'rgba(40, 167, 69, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Expenses',
+                    data: data.monthly_comparison.expenses,
+                    backgroundColor: 'rgba(220, 53, 69, 0.7)',
+                    borderColor: 'rgba(220, 53, 69, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Savings',
+                    data: data.monthly_comparison.savings,
+                    backgroundColor: 'rgba(23, 162, 184, 0.7)',
+                    borderColor: 'rgba(23, 162, 184, 1)',
+                    borderWidth: 1
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: false,
+                    ticks: {
+                        callback: function(value) {
+                            return '₹' + value.toLocaleString();
+                        }
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                }
+            }
+        }
+    });
+}
+
+// Initialize when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof Chart === 'undefined') {
+        console.error('Chart.js is not available');
+        return;
+    }
+    
+    // Load data for the first available year
+    loadYearlyData();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,360 @@
+{% extends "base.html" %}
+
+{% block title %}Google Sheets Settings - Budget Planner{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Settings Header -->
+    <div class="dashboard-header">
+        <div class="row align-items-center">
+            <div class="col">
+                <h2><i class="fab fa-google-drive me-3"></i>Google Sheets Integration</h2>
+                <p class="text-muted mb-0">Automatically export your budget data to Google Sheets</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Cards -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-link fa-2x {% if config.enabled %}text-success{% else %}text-muted{% endif %} mb-3"></i>
+                    <h5>Connection Status</h5>
+                    <span class="badge {% if config.enabled %}bg-success{% else %}bg-secondary{% endif %} fs-6">
+                        {% if config.enabled %}Connected{% else %}Not Connected{% endif %}
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-clock fa-2x {% if config.auto_export_enabled %}text-primary{% else %}text-muted{% endif %} mb-3"></i>
+                    <h5>Auto Export</h5>
+                    <span class="badge {% if config.auto_export_enabled %}bg-primary{% else %}bg-secondary{% endif %} fs-6">
+                        {% if config.auto_export_enabled %}Enabled{% else %}Disabled{% endif %}
+                    </span>
+                    {% if config.auto_export_enabled %}
+                        <div class="mt-2 small text-muted">Daily at {{ config.export_time }}</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-calendar-check fa-2x {% if config.last_export %}text-info{% else %}text-muted{% endif %} mb-3"></i>
+                    <h5>Last Export</h5>
+                    {% if config.last_export %}
+                        <div class="small">{{ config.last_export[:19] | replace('T', ' ') }}</div>
+                    {% else %}
+                        <span class="text-muted">Never</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Setup Instructions -->
+    {% if not config.enabled %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-info">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Setup Instructions</h5>
+                </div>
+                <div class="card-body">
+                    <ol>
+                        <li class="mb-2">
+                            <strong>Create Google Cloud Project:</strong>
+                            <ul>
+                                <li>Go to <a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a></li>
+                                <li>Create a new project or select existing one</li>
+                            </ul>
+                        </li>
+                        <li class="mb-2">
+                            <strong>Enable Google Sheets API:</strong>
+                            <ul>
+                                <li>In the Google Cloud Console, go to "APIs & Services" > "Library"</li>
+                                <li>Search for "Google Sheets API" and enable it</li>
+                            </ul>
+                        </li>
+                        <li class="mb-2">
+                            <strong>Create Credentials:</strong>
+                            <ul>
+                                <li>Go to "APIs & Services" > "Credentials"</li>
+                                <li>Click "Create Credentials" > "OAuth 2.0 Client IDs"</li>
+                                <li>Choose "Desktop application"</li>
+                                <li>Download the JSON file and save it as <code>credentials.json</code> in your project folder</li>
+                            </ul>
+                        </li>
+                        <li class="mb-2">
+                            <strong>Create Spreadsheet:</strong>
+                            <ul>
+                                <li>Use the form below to create a new spreadsheet</li>
+                                <li>You'll need to authorize the application on first use</li>
+                            </ul>
+                        </li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Spreadsheet Setup -->
+    {% if not config.spreadsheet_id %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-plus-circle me-2"></i>Create New Spreadsheet</h5>
+                </div>
+                <div class="card-body">
+                    <form id="createSpreadsheetForm">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="mb-3">
+                                    <label for="spreadsheetTitle" class="form-label">Spreadsheet Title</label>
+                                    <input type="text" class="form-control" id="spreadsheetTitle" name="title" 
+                                           value="Budget Data 2025" required>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">&nbsp;</label>
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="fas fa-plus me-2"></i>Create Spreadsheet
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Current Spreadsheet Info -->
+    {% if config.spreadsheet_id %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-success">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-table me-2"></i>Connected Spreadsheet</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <p><strong>Spreadsheet ID:</strong> {{ config.spreadsheet_id }}</p>
+                            <p><strong>Access Link:</strong> 
+                                <a href="https://docs.google.com/spreadsheets/d/{{ config.spreadsheet_id }}" target="_blank">
+                                    Open in Google Sheets <i class="fas fa-external-link-alt ms-1"></i>
+                                </a>
+                            </p>
+                        </div>
+                        <div class="col-md-4">
+                            <button type="button" class="btn btn-info w-100 mb-2" onclick="testExport()">
+                                <i class="fas fa-play me-2"></i>Test Export Now
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Auto-Export Settings -->
+    {% if config.enabled %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-cog me-2"></i>Auto-Export Settings</h5>
+                </div>
+                <div class="card-body">
+                    <form id="autoExportForm">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="autoExportEnabled" class="form-label">Enable Auto-Export</label>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="autoExportEnabled" 
+                                               name="enabled" {% if config.auto_export_enabled %}checked{% endif %}>
+                                        <label class="form-check-label" for="autoExportEnabled">
+                                            Export data automatically
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="exportTime" class="form-label">Export Time</label>
+                                    <input type="time" class="form-control" id="exportTime" name="export_time" 
+                                           value="{{ config.export_time or '23:58' }}">
+                                    <div class="form-text">Daily export time (24-hour format)</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">&nbsp;</label>
+                                <button type="submit" class="btn btn-success w-100">
+                                    <i class="fas fa-save me-2"></i>Save Settings
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Export Information -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-info me-2"></i>What Gets Exported</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <h6><i class="fas fa-wallet text-primary me-2"></i>Budget Data</h6>
+                            <ul class="list-unstyled">
+                                <li>• Monthly income and expenses</li>
+                                <li>• Calculated totals and savings</li>
+                                <li>• Historical budget entries</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-4">
+                            <h6><i class="fas fa-list text-success me-2"></i>Bucket List</h6>
+                            <ul class="list-unstyled">
+                                <li>• All bucket list items</li>
+                                <li>• Prices and priorities</li>
+                                <li>• Status and target dates</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-4">
+                            <h6><i class="fas fa-chart-line text-warning me-2"></i>Variable Expenses</h6>
+                            <ul class="list-unstyled">
+                                <li>• Daily variable expenses</li>
+                                <li>• Categories and descriptions</li>
+                                <li>• Monthly totals</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Set default spreadsheet title with current date
+document.addEventListener('DOMContentLoaded', function() {
+    const titleInput = document.getElementById('spreadsheetTitle');
+    if (titleInput && titleInput.value === 'Budget Data 2025') {
+        const today = new Date();
+        const dateStr = today.getFullYear() + '-' + 
+                       String(today.getMonth() + 1).padStart(2, '0') + '-' + 
+                       String(today.getDate()).padStart(2, '0');
+        titleInput.value = `Budget Data ${dateStr}`;
+    }
+});
+
+// Create Spreadsheet Form
+document.getElementById('createSpreadsheetForm')?.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const button = this.querySelector('button[type="submit"]');
+    const originalText = button.innerHTML;
+    
+    button.disabled = true;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Creating...';
+    
+    try {
+        const response = await fetch('/settings/google-sheets/create-spreadsheet', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            alert('Spreadsheet created successfully! Reloading page...');
+            window.location.reload();
+        } else {
+            alert('Failed to create spreadsheet: ' + result.message);
+        }
+    } catch (error) {
+        alert('Error creating spreadsheet: ' + error.message);
+    } finally {
+        button.disabled = false;
+        button.innerHTML = originalText;
+    }
+});
+
+// Auto-Export Settings Form
+document.getElementById('autoExportForm')?.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const button = this.querySelector('button[type="submit"]');
+    const originalText = button.innerHTML;
+    
+    button.disabled = true;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Saving...';
+    
+    try {
+        const response = await fetch('/settings/google-sheets/toggle', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            alert('Settings saved successfully!');
+            window.location.reload();
+        } else {
+            alert('Failed to save settings: ' + result.message);
+        }
+    } catch (error) {
+        alert('Error saving settings: ' + error.message);
+    } finally {
+        button.disabled = false;
+        button.innerHTML = originalText;
+    }
+});
+
+// Test Export Function
+async function testExport() {
+    const button = event.target;
+    const originalText = button.innerHTML;
+    
+    button.disabled = true;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Testing...';
+    
+    try {
+        const response = await fetch('/settings/google-sheets/test-export', {
+            method: 'POST'
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            alert('Test export completed successfully! Check your Google Sheets.');
+        } else {
+            alert('Test export failed: ' + result.message);
+        }
+    } catch (error) {
+        alert('Error during test export: ' + error.message);
+    } finally {
+        button.disabled = false;
+        button.innerHTML = originalText;
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,671 @@
+{% extends "base.html" %}
+
+{% block title %}Monthly Analysis - Budget Planner{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="dashboard-header">
+            <h1><i class="fas fa-calendar-day me-2"></i>Monthly Budget Analysis</h1>
+            <p class="text-white">Detailed monthly budget breakdown and insights for {{ user.username }}</p>
+        </div>
+    </div>
+</div>
+
+<!-- Month Selection -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-calendar-alt me-2"></i>Select Month for Analysis</h5>
+                    <div>
+                        <label for="monthSelect" class="form-label me-2">Month:</label>
+                        <select class="form-select d-inline-block w-auto" id="monthSelect" onchange="loadMonthlyData()">
+                            {% for period in available_periods %}
+                            <option value="{{ period.year }}/{{ period.month }}" {% if loop.first %}selected{% endif %}>
+                                {{ period.display }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Indicator -->
+<div id="loadingIndicator" class="text-center" style="display: none;">
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+    <p class="mt-2">Loading monthly data...</p>
+</div>
+
+<!-- Month Summary Cards -->
+<div id="summaryCards" class="row mb-4" style="display: none;">
+    <div class="col-md-3">
+        <div class="card yearly-summary-card income-card">
+            <div class="card-body">
+                <div class="stats-icon">
+                    <i class="fas fa-money-bill-wave"></i>
+                </div>
+                <div class="stats-content">
+                    <h5>Total Income</h5>
+                    <h3 id="totalIncome">₹0.00</h3>
+                    <small class="text-muted" id="incomeChange">No change</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card yearly-summary-card expense-card">
+            <div class="card-body">
+                <div class="stats-icon">
+                    <i class="fas fa-credit-card"></i>
+                </div>
+                <div class="stats-content">
+                    <h5>Total Expenses</h5>
+                    <h3 id="totalExpenses">₹0.00</h3>
+                    <small class="text-muted" id="expensesChange">No change</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card yearly-summary-card savings-card">
+            <div class="card-body">
+                <div class="stats-icon">
+                    <i class="fas fa-piggy-bank"></i>
+                </div>
+                <div class="stats-content">
+                    <h5>Net Savings</h5>
+                    <h3 id="totalSavings">₹0.00</h3>
+                    <small class="text-muted" id="savingsChange">No change</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card yearly-summary-card progress-card">
+            <div class="card-body">
+                <div class="stats-icon">
+                    <i class="fas fa-percentage"></i>
+                </div>
+                <div class="stats-content">
+                    <h5>Savings Rate</h5>
+                    <h3 id="savingsRate">0%</h3>
+                    <small class="text-muted">Of total income</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Analytics Cards -->
+<div id="analyticsCards" class="row mb-4" style="display: none;">
+    <div class="col-md-4">
+        <div class="card yearly-summary-card bucket-card">
+            <div class="card-body">
+                <div class="stats-icon">
+                    <i class="fas fa-chart-pie"></i>
+                </div>
+                <div class="stats-content">
+                    <h5>Expense Ratio</h5>
+                    <h3 id="expenseRatio">0%</h3>
+                    <small class="text-muted">Of total income</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card yearly-summary-card salary-card">
+            <div class="card-body">
+                <div class="stats-icon">
+                    <i class="fas fa-trophy"></i>
+                </div>
+                <div class="stats-content">
+                    <h5>Largest Expense</h5>
+                    <h3 id="largestExpenseAmount">₹0.00</h3>
+                    <small class="text-muted" id="largestExpenseCategory">Category</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card yearly-summary-card bucket-card">
+            <div class="card-body">
+                <div class="stats-icon">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+                <div class="stats-content">
+                    <h5>YTD Average</h5>
+                    <h3 id="ytdAvgSavings">₹0.00</h3>
+                    <small class="text-muted">Monthly savings</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Section -->
+<div id="chartsSection" style="display: none;">
+    <!-- Income vs Expenses vs Previous Month -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card yearly-chart-card">
+                <div class="card-header bg-primary text-white">
+                    <h5><i class="fas fa-chart-bar me-2"></i>Current vs Previous Month</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="monthComparisonChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card yearly-chart-card">
+                <div class="card-header bg-success text-white">
+                    <h5><i class="fas fa-chart-pie me-2"></i>Income Breakdown</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="incomeBreakdownChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Expense Analysis -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card yearly-chart-card">
+                <div class="card-header bg-danger text-white">
+                    <h5><i class="fas fa-chart-doughnut me-2"></i>Expense Categories</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="expenseBreakdownChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card yearly-chart-card">
+                <div class="card-header bg-warning text-dark">
+                    <h5><i class="fas fa-chart-bar me-2"></i>Fixed vs Variable Expenses</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="fixedVariableChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Budget Performance -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card yearly-chart-card">
+                <div class="card-header bg-info text-white">
+                    <h5><i class="fas fa-chart-line me-2"></i>Year-to-Date Progress</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="ytdProgressChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card yearly-chart-card">
+                <div class="card-header bg-secondary text-white">
+                    <h5><i class="fas fa-chart-area me-2"></i>Budget Health Score</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="budgetHealthChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Expense Breakdown -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card yearly-chart-card">
+                <div class="card-header bg-gradient-primary text-white">
+                    <h5><i class="fas fa-list me-2"></i>Detailed Expense Breakdown</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="detailedExpenseChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- No Data Message -->
+<div id="noDataMessage" class="row" style="display: none;">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body text-center">
+                <i class="fas fa-calendar-times fa-4x text-muted mb-3"></i>
+                <h4>No Data Available</h4>
+                <p class="text-muted">No budget entry found for the selected month.</p>
+                <a href="/budget" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Add Budget Entry
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+let monthlyChartInstances = {};
+let currentMonthData = null;
+
+// Load data for selected month
+async function loadMonthlyData() {
+    const selectedValue = document.getElementById('monthSelect').value;
+    const [year, month] = selectedValue.split('/');
+    
+    // Show loading indicator
+    document.getElementById('loadingIndicator').style.display = 'block';
+    document.getElementById('summaryCards').style.display = 'none';
+    document.getElementById('analyticsCards').style.display = 'none';
+    document.getElementById('chartsSection').style.display = 'none';
+    document.getElementById('noDataMessage').style.display = 'none';
+
+    try {
+        const response = await fetch(`/api/monthly-analysis-data/${year}/${month}`);
+        const data = await response.json();
+        
+        currentMonthData = data;
+        
+        // Hide loading indicator
+        document.getElementById('loadingIndicator').style.display = 'none';
+        
+        if (data.error) {
+            document.getElementById('noDataMessage').style.display = 'block';
+            return;
+        }
+        
+        // Update summary cards
+        updateSummaryCards(data);
+        updateAnalyticsCards(data);
+        
+        // Show summary and charts
+        document.getElementById('summaryCards').style.display = 'flex';
+        document.getElementById('analyticsCards').style.display = 'flex';
+        document.getElementById('chartsSection').style.display = 'block';
+        
+        // Destroy existing charts
+        Object.values(monthlyChartInstances).forEach(chart => {
+            if (chart) chart.destroy();
+        });
+        monthlyChartInstances = {};
+        
+        // Create new charts
+        createMonthComparisonChart(data);
+        createIncomeBreakdownChart(data);
+        createExpenseBreakdownChart(data);
+        createFixedVariableChart(data);
+        createYtdProgressChart(data);
+        createBudgetHealthChart(data);
+        createDetailedExpenseChart(data);
+        
+    } catch (error) {
+        console.error('Error loading monthly data:', error);
+        document.getElementById('loadingIndicator').style.display = 'none';
+        document.getElementById('noDataMessage').style.display = 'block';
+    }
+}
+
+// Update summary cards
+function updateSummaryCards(data) {
+    document.getElementById('totalIncome').textContent = '₹' + data.current.income.total.toFixed(2);
+    document.getElementById('totalExpenses').textContent = '₹' + data.current.expenses.total.toFixed(2);
+    document.getElementById('totalSavings').textContent = '₹' + data.current.savings.toFixed(2);
+    document.getElementById('savingsRate').textContent = data.analytics.savings_rate.toFixed(1) + '%';
+    
+    // Update change indicators
+    if (data.previous.has_data) {
+        const incomeChange = data.comparisons.income_change;
+        const expensesChange = data.comparisons.expenses_change;
+        const savingsChange = data.comparisons.savings_change;
+        
+        document.getElementById('incomeChange').textContent = 
+            (incomeChange >= 0 ? '+' : '') + '₹' + incomeChange.toFixed(2) + ' from prev month';
+        document.getElementById('incomeChange').className = 
+            'text-muted ' + (incomeChange >= 0 ? 'text-success' : 'text-danger');
+            
+        document.getElementById('expensesChange').textContent = 
+            (expensesChange >= 0 ? '+' : '') + '₹' + expensesChange.toFixed(2) + ' from prev month';
+        document.getElementById('expensesChange').className = 
+            'text-muted ' + (expensesChange <= 0 ? 'text-success' : 'text-danger');
+            
+        document.getElementById('savingsChange').textContent = 
+            (savingsChange >= 0 ? '+' : '') + '₹' + savingsChange.toFixed(2) + ' from prev month';
+        document.getElementById('savingsChange').className = 
+            'text-muted ' + (savingsChange >= 0 ? 'text-success' : 'text-danger');
+    }
+}
+
+// Update analytics cards
+function updateAnalyticsCards(data) {
+    document.getElementById('expenseRatio').textContent = data.analytics.expense_to_income_ratio.toFixed(1) + '%';
+    document.getElementById('largestExpenseAmount').textContent = '₹' + data.analytics.largest_expense_category[1].toFixed(2);
+    document.getElementById('largestExpenseCategory').textContent = data.analytics.largest_expense_category[0];
+    document.getElementById('ytdAvgSavings').textContent = '₹' + data.year_to_date.avg_monthly_savings.toFixed(2);
+}
+
+// Chart creation functions
+function createMonthComparisonChart(data) {
+    const ctx = document.getElementById('monthComparisonChart');
+    
+    const currentData = [data.current.income.total, data.current.expenses.total, data.current.savings];
+    const previousData = data.previous.has_data ? 
+        [data.previous.income, data.previous.expenses, data.previous.savings] : [0, 0, 0];
+    
+    monthlyChartInstances.monthComparison = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Income', 'Expenses', 'Savings'],
+            datasets: [
+                {
+                    label: `Current (${data.month} ${data.year})`,
+                    data: currentData,
+                    backgroundColor: ['rgba(40, 167, 69, 0.8)', 'rgba(220, 53, 69, 0.8)', 'rgba(23, 162, 184, 0.8)'],
+                    borderColor: ['rgba(40, 167, 69, 1)', 'rgba(220, 53, 69, 1)', 'rgba(23, 162, 184, 1)'],
+                    borderWidth: 1
+                },
+                {
+                    label: `Previous (${data.previous.month} ${data.previous.year})`,
+                    data: previousData,
+                    backgroundColor: ['rgba(40, 167, 69, 0.4)', 'rgba(220, 53, 69, 0.4)', 'rgba(23, 162, 184, 0.4)'],
+                    borderColor: ['rgba(40, 167, 69, 0.7)', 'rgba(220, 53, 69, 0.7)', 'rgba(23, 162, 184, 0.7)'],
+                    borderWidth: 1
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '₹' + value.toLocaleString();
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+function createIncomeBreakdownChart(data) {
+    const ctx = document.getElementById('incomeBreakdownChart');
+    
+    monthlyChartInstances.incomeBreakdown = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Salary', 'Freelancing 1', 'Freelancing 2'],
+            datasets: [{
+                data: [
+                    data.current.income.salary,
+                    data.current.income.freelancing_one,
+                    data.current.income.freelancing_two
+                ],
+                backgroundColor: [
+                    'rgba(40, 167, 69, 0.8)',
+                    'rgba(255, 193, 7, 0.8)',
+                    'rgba(23, 162, 184, 0.8)'
+                ],
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+}
+
+function createExpenseBreakdownChart(data) {
+    const ctx = document.getElementById('expenseBreakdownChart');
+    
+    const expenseData = [
+        data.current.expenses.rent,
+        data.current.expenses.food,
+        data.current.expenses.emi_total,
+        data.current.expenses.creditcard_total,
+        data.current.expenses.shopping,
+        data.current.expenses.travel,
+        data.current.expenses.utilities_total,
+        data.current.expenses.other_expenses
+    ];
+    
+    const expenseLabels = ['Rent', 'Food', 'EMIs', 'Credit Cards', 'Shopping', 'Travel', 'Utilities', 'Other'];
+    
+    monthlyChartInstances.expenseBreakdown = new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: expenseLabels,
+            datasets: [{
+                data: expenseData,
+                backgroundColor: [
+                    'rgba(220, 53, 69, 0.8)',
+                    'rgba(255, 193, 7, 0.8)',
+                    'rgba(108, 117, 125, 0.8)',
+                    'rgba(102, 16, 242, 0.8)',
+                    'rgba(233, 30, 99, 0.8)',
+                    'rgba(255, 87, 34, 0.8)',
+                    'rgba(0, 150, 136, 0.8)',
+                    'rgba(121, 85, 72, 0.8)'
+                ],
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+}
+
+function createFixedVariableChart(data) {
+    const ctx = document.getElementById('fixedVariableChart');
+    
+    const fixedExpenses = data.current.expenses.rent + data.current.expenses.emi_total + data.current.expenses.utilities_total;
+    const variableExpenses = data.current.expenses.food + data.current.expenses.shopping + 
+                           data.current.expenses.travel + data.current.expenses.creditcard_total + 
+                           data.current.expenses.other_expenses;
+    
+    monthlyChartInstances.fixedVariable = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Fixed Expenses', 'Variable Expenses'],
+            datasets: [{
+                data: [fixedExpenses, variableExpenses],
+                backgroundColor: ['rgba(220, 53, 69, 0.8)', 'rgba(255, 193, 7, 0.8)'],
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+}
+
+function createYtdProgressChart(data) {
+    const ctx = document.getElementById('ytdProgressChart');
+    
+    monthlyChartInstances.ytdProgress = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Total YTD', 'Average Monthly', 'Current Month'],
+            datasets: [
+                {
+                    label: 'Income',
+                    data: [data.year_to_date.income, data.year_to_date.avg_monthly_income, data.current.income.total],
+                    backgroundColor: 'rgba(40, 167, 69, 0.8)',
+                    borderColor: 'rgba(40, 167, 69, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Expenses',
+                    data: [data.year_to_date.expenses, data.year_to_date.avg_monthly_expenses, data.current.expenses.total],
+                    backgroundColor: 'rgba(220, 53, 69, 0.8)',
+                    borderColor: 'rgba(220, 53, 69, 1)',
+                    borderWidth: 1
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '₹' + value.toLocaleString();
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+function createBudgetHealthChart(data) {
+    const ctx = document.getElementById('budgetHealthChart');
+    
+    const savingsRate = data.analytics.savings_rate;
+    const expenseRatio = data.analytics.expense_to_income_ratio;
+    const healthScore = Math.max(0, 100 - expenseRatio + savingsRate);
+    
+    monthlyChartInstances.budgetHealth = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Health Score', 'Room for Improvement'],
+            datasets: [{
+                data: [healthScore, 100 - healthScore],
+                backgroundColor: [
+                    healthScore >= 70 ? 'rgba(40, 167, 69, 0.8)' : 
+                    healthScore >= 40 ? 'rgba(255, 193, 7, 0.8)' : 'rgba(220, 53, 69, 0.8)',
+                    'rgba(108, 117, 125, 0.2)'
+                ],
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+}
+
+function createDetailedExpenseChart(data) {
+    const ctx = document.getElementById('detailedExpenseChart');
+    
+    monthlyChartInstances.detailedExpense = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: [
+                'Rent', 'Food', 'EMI 1', 'EMI 2', 'EMI 3', 'EMI 4',
+                'Credit Card 1', 'Credit Card 2', 'Shopping', 'Travel',
+                'Mobile', 'WiFi', 'Other'
+            ],
+            datasets: [{
+                label: 'Amount (₹)',
+                data: [
+                    data.current.expenses.rent,
+                    data.current.expenses.food,
+                    data.current.expenses.emi_one,
+                    data.current.expenses.emi_two,
+                    data.current.expenses.emi_three,
+                    data.current.expenses.emi_four,
+                    data.current.expenses.creditcard_one,
+                    data.current.expenses.creditcard_two,
+                    data.current.expenses.shopping,
+                    data.current.expenses.travel,
+                    data.current.expenses.mobile_recharge,
+                    data.current.expenses.wifi,
+                    data.current.expenses.other_expenses
+                ],
+                backgroundColor: 'rgba(54, 162, 235, 0.8)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            indexAxis: 'y',
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '₹' + value;
+                        }
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+}
+
+// Initialize when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof Chart === 'undefined') {
+        console.error('Chart.js is not available');
+        return;
+    }
+    
+    // Load data for the first available period
+    loadMonthlyData();
+});
+</script>
+{% endblock %}

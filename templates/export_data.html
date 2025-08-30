@@ -1,0 +1,263 @@
+{% extends "base.html" %}
+
+{% block title %}Export Data - Budget Planner{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Export Header -->
+    <div class="dashboard-header">
+        <div class="row align-items-center">
+            <div class="col">
+                <h2><i class="fas fa-download me-3"></i>Export Data</h2>
+                <p class="text-muted mb-0">Download your budget data in CSV or Excel format</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export Options -->
+    <div class="row">
+        <!-- Budget Data Export -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-wallet me-2"></i>Budget Data</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">Export your monthly income and expense data with calculated totals.</p>
+                    
+                    <form id="budgetExportForm">
+                        <div class="mb-3">
+                            <label for="budgetFormat" class="form-label">Format</label>
+                            <select class="form-select" id="budgetFormat" name="format">
+                                <option value="csv">CSV</option>
+                                <option value="excel">Excel (.xlsx)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="budgetYear" class="form-label">Year (Optional)</label>
+                            <select class="form-select" id="budgetYear" name="year">
+                                <option value="">All Years</option>
+                                <option value="2025">2025</option>
+                                <option value="2024">2024</option>
+                                <option value="2023">2023</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="budgetMonth" class="form-label">Month (Optional)</label>
+                            <select class="form-select" id="budgetMonth" name="month">
+                                <option value="">All Months</option>
+                                <option value="January">January</option>
+                                <option value="February">February</option>
+                                <option value="March">March</option>
+                                <option value="April">April</option>
+                                <option value="May">May</option>
+                                <option value="June">June</option>
+                                <option value="July">July</option>
+                                <option value="August">August</option>
+                                <option value="September">September</option>
+                                <option value="October">October</option>
+                                <option value="November">November</option>
+                                <option value="December">December</option>
+                            </select>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-download me-2"></i>Download Budget Data
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bucket List Export -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-star me-2"></i>Bucket List</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">Export your bucket list items with prices, priorities, and status.</p>
+                    
+                    <form id="bucketExportForm">
+                        <div class="mb-3">
+                            <label for="bucketFormat" class="form-label">Format</label>
+                            <select class="form-select" id="bucketFormat" name="format">
+                                <option value="csv">CSV</option>
+                                <option value="excel">Excel (.xlsx)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <small class="text-muted">All bucket list items will be exported.</small>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-success w-100">
+                            <i class="fas fa-download me-2"></i>Download Bucket List
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Variable Expenses Export -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-warning text-white">
+                    <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i>Variable Expenses</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">Export your daily variable expenses with categories and dates.</p>
+                    
+                    <form id="variableExportForm">
+                        <div class="mb-3">
+                            <label for="variableFormat" class="form-label">Format</label>
+                            <select class="form-select" id="variableFormat" name="format">
+                                <option value="csv">CSV</option>
+                                <option value="excel">Excel (.xlsx)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="variableYear" class="form-label">Year (Optional)</label>
+                            <select class="form-select" id="variableYear" name="year">
+                                <option value="">All Years</option>
+                                <option value="2025">2025</option>
+                                <option value="2024">2024</option>
+                                <option value="2023">2023</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="variableMonth" class="form-label">Month (Optional)</label>
+                            <select class="form-select" id="variableMonth" name="month">
+                                <option value="">All Months</option>
+                                <option value="January">January</option>
+                                <option value="February">February</option>
+                                <option value="March">March</option>
+                                <option value="April">April</option>
+                                <option value="May">May</option>
+                                <option value="June">June</option>
+                                <option value="July">July</option>
+                                <option value="August">August</option>
+                                <option value="September">September</option>
+                                <option value="October">October</option>
+                                <option value="November">November</option>
+                                <option value="December">December</option>
+                            </select>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-warning w-100">
+                            <i class="fas fa-download me-2"></i>Download Variable Expenses
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export Information -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Export Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-file-csv text-success me-2"></i>CSV Format</h6>
+                            <ul class="list-unstyled">
+                                <li>• Compatible with Excel, Google Sheets</li>
+                                <li>• Smaller file size</li>
+                                <li>• Universal format</li>
+                                <li>• Easy to import into other tools</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-file-excel text-primary me-2"></i>Excel Format</h6>
+                            <ul class="list-unstyled">
+                                <li>• Native Excel file (.xlsx)</li>
+                                <li>• Preserves formatting</li>
+                                <li>• Ready for analysis</li>
+                                <li>• Professional presentation</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <div class="alert alert-info">
+                                <i class="fas fa-lightbulb me-2"></i>
+                                <strong>Tip:</strong> Use filters to export specific time periods. 
+                                Leave year and month blank to export all available data.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Budget Data Export
+document.getElementById('budgetExportForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const format = formData.get('format');
+    const year = formData.get('year');
+    const month = formData.get('month');
+    
+    let url = `/download/budget?format=${format}`;
+    if (year) url += `&year=${year}`;
+    if (month) url += `&month=${month}`;
+    
+    // Trigger download
+    window.location.href = url;
+});
+
+// Bucket List Export
+document.getElementById('bucketExportForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const format = formData.get('format');
+    
+    let url = `/download/bucket-list?format=${format}`;
+    
+    // Trigger download
+    window.location.href = url;
+});
+
+// Variable Expenses Export
+document.getElementById('variableExportForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const format = formData.get('format');
+    const year = formData.get('year');
+    const month = formData.get('month');
+    
+    let url = `/download/variable-expenses?format=${format}`;
+    if (year) url += `&year=${year}`;
+    if (month) url += `&month=${month}`;
+    
+    // Trigger download
+    window.location.href = url;
+});
+
+// Set current year as default
+document.addEventListener('DOMContentLoaded', function() {
+    const currentYear = new Date().getFullYear();
+    const yearSelects = document.querySelectorAll('[id$="Year"]');
+    yearSelects.forEach(select => {
+        if (select.querySelector(`option[value="${currentYear}"]`)) {
+            select.value = currentYear;
+        }
+    });
+});
+</script>
+{% endblock %}

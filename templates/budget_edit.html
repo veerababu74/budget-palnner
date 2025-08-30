@@ -1,0 +1,327 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Budget Entry - Budget Planner{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="budget-header">
+            <h1><i class="fas fa-edit me-2"></i>Edit Budget Entry</h1>
+            <p class="text-muted">Update your budget entry for {{ entry.month }} {{ entry.year }}</p>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-edit me-2"></i>Edit Budget Entry - {{ entry.month }} {{ entry.year }}</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="/budget/update/{{ entry.id }}" class="budget-form">
+                    
+                    <div class="section-header">
+                        <h6><i class="fas fa-plus-circle text-success me-2"></i>Income Sources</h6>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="salary" class="form-label">Salary (Fixed)</label>
+                            <div class="input-group">
+                                <span class="input-group-text">₹</span>
+                                <input type="number" class="form-control" id="salary" name="salary" 
+                                       step="0.01" min="0" value="{{ entry.salary }}">
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="freelancing_one" class="form-label">Freelancing 1</label>
+                            <div class="input-group">
+                                <span class="input-group-text">₹</span>
+                                <input type="number" class="form-control" id="freelancing_one" name="freelancing_one" 
+                                       step="0.01" min="0" value="{{ entry.freelancing_one }}">
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="freelancing_two" class="form-label">Freelancing 2</label>
+                            <div class="input-group">
+                                <span class="input-group-text">₹</span>
+                                <input type="number" class="form-control" id="freelancing_two" name="freelancing_two" 
+                                       step="0.01" min="0" value="{{ entry.freelancing_two }}">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="section-header">
+                        <h6><i class="fas fa-minus-circle text-danger me-2"></i>Monthly Expenses</h6>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <label for="mobile_recharge" class="form-label">Mobile Recharge</label>
+                            <div class="input-group">
+                                <span class="input-group-text">₹</span>
+                                <input type="number" class="form-control" id="mobile_recharge" name="mobile_recharge" 
+                                       step="0.01" min="0" value="{{ entry.mobile_recharge }}">
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label for="wifi" class="form-label">WiFi/Internet</label>
+                            <div class="input-group">
+                                <span class="input-group-text">₹</span>
+                                <input type="number" class="form-control" id="wifi" name="wifi" 
+                                       step="0.01" min="0" value="{{ entry.wifi }}">
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label for="food" class="form-label">Food</label>
+                            <div class="input-group">
+                                <span class="input-group-text">₹</span>
+                                <input type="number" class="form-control" id="food" name="food" 
+                                       step="0.01" min="0" value="{{ entry.food }}">
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label for="rent" class="form-label">Rent</label>
+                            <div class="input-group">
+                                <span class="input-group-text">₹</span>
+                                <input type="number" class="form-control" id="rent" name="rent" 
+                                       step="0.01" min="0" value="{{ entry.rent }}">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="section-header">
+                        <h6><i class="fas fa-credit-card text-warning me-2"></i>EMIs</h6>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <label for="emi_one" class="form-label">EMI 1</label>
+                            <div class="input-group">
+                                <span class="input-group-text">₹</span>
+                                <input type="number" class="form-control" id="emi_one" name="emi_one" 
+                                       step="0.01" min="0" value="{{ entry.emi_one }}">
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label for="emi_two" class="form-label">EMI 2</label>
+                            <div class="input-group">
+                                <span class="input-group-text">₹</span>
+                                <input type="number" class="form-control" id="emi_two" name="emi_two" 
+                                       step="0.01" min="0" value="{{ entry.emi_two }}">
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label for="emi_three" class="form-label">EMI 3</label>
+                            <div class="input-group">
+                                <span class="input-group-text">₹</span>
+                                <input type="number" class="form-control" id="emi_three" name="emi_three" 
+                                       step="0.01" min="0" value="{{ entry.emi_three }}">
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label for="emi_four" class="form-label">EMI 4</label>
+                            <div class="input-group">
+                                <span class="input-group-text">₹</span>
+                                <input type="number" class="form-control" id="emi_four" name="emi_four" 
+                                       step="0.01" min="0" value="{{ entry.emi_four }}">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="section-header">
+                        <h6><i class="fas fa-shopping-cart text-info me-2"></i>Additional Expenses</h6>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <label for="creditcard_one" class="form-label">Credit Card 1</label>
+                            <div class="input-group">
+                                <span class="input-group-text">₹</span>
+                                <input type="number" class="form-control" id="creditcard_one" name="creditcard_one" 
+                                       step="0.01" min="0" value="{{ entry.creditcard_one }}">
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label for="creditcard_two" class="form-label">Credit Card 2</label>
+                            <div class="input-group">
+                                <span class="input-group-text">₹</span>
+                                <input type="number" class="form-control" id="creditcard_two" name="creditcard_two" 
+                                       step="0.01" min="0" value="{{ entry.creditcard_two }}">
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label for="shopping" class="form-label">Shopping</label>
+                            <div class="input-group">
+                                <span class="input-group-text">₹</span>
+                                <input type="number" class="form-control" id="shopping" name="shopping" 
+                                       step="0.01" min="0" value="{{ entry.shopping }}">
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label for="travel" class="form-label">Travel</label>
+                            <div class="input-group">
+                                <span class="input-group-text">₹</span>
+                                <input type="number" class="form-control" id="travel" name="travel" 
+                                       step="0.01" min="0" value="{{ entry.travel }}">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="other_expenses" class="form-label">Other Expenses</label>
+                            <div class="input-group">
+                                <span class="input-group-text">₹</span>
+                                <input type="number" class="form-control" id="other_expenses" name="other_expenses" 
+                                       step="0.01" min="0" value="{{ entry.other_expenses }}">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="summary-section">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="summary-card income-summary">
+                                    <h6>Total Income</h6>
+                                    <span id="totalIncome">₹0.00</span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="summary-card expense-summary">
+                                    <h6>Total Expenses</h6>
+                                    <span id="totalExpenses">₹0.00</span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="summary-card savings-summary">
+                                    <h6>Net Savings</h6>
+                                    <span id="netSavings">₹0.00</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-success btn-lg me-2">
+                            <i class="fas fa-save me-2"></i>Update Budget Entry
+                        </button>
+                        <a href="/budget" class="btn btn-secondary btn-lg">
+                            <i class="fas fa-times me-2"></i>Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-info-circle me-2"></i>Entry Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="entry-info">
+                    <h6>Entry Details</h6>
+                    <p><strong>Month:</strong> {{ entry.month }}</p>
+                    <p><strong>Year:</strong> {{ entry.year }}</p>
+                    <p><strong>Created:</strong> {{ entry.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                    
+                    <hr>
+                    
+                    <h6>Current Totals</h6>
+                    {% set total_income = entry.salary + entry.freelancing_one + entry.freelancing_two %}
+                    {% set total_expenses = entry.mobile_recharge + entry.wifi + entry.emi_one + entry.emi_two + entry.emi_three + entry.emi_four + entry.food + entry.rent + entry.creditcard_one + entry.creditcard_two + entry.shopping + entry.travel + entry.other_expenses %}
+                    
+                    <p><strong>Income:</strong> <span class="text-success">₹{{ "%.2f"|format(total_income) }}</span></p>
+                    <p><strong>Expenses:</strong> <span class="text-danger">₹{{ "%.2f"|format(total_expenses) }}</span></p>
+                    <p><strong>Net Savings:</strong> 
+                        <span class="{% if total_income - total_expenses >= 0 %}text-success{% else %}text-danger{% endif %}">
+                            ₹{{ "%.2f"|format(total_income - total_expenses) }}
+                        </span>
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5><i class="fas fa-history me-2"></i>Other Entries</h5>
+            </div>
+            <div class="card-body">
+                {% if entries %}
+                    <div class="recent-entries">
+                        {% for other_entry in entries[:5] %}
+                            {% if other_entry.id != entry.id %}
+                            <div class="entry-item">
+                                <div class="entry-header">
+                                    <strong>{{ other_entry.month }} {{ other_entry.year }}</strong>
+                                    <small class="text-muted">{{ other_entry.created_at.strftime('%Y-%m-%d') }}</small>
+                                </div>
+                                <div class="entry-details">
+                                    {% set other_total_income = other_entry.salary + other_entry.freelancing_one + other_entry.freelancing_two %}
+                                    {% set other_total_expenses = other_entry.mobile_recharge + other_entry.wifi + other_entry.emi_one + other_entry.emi_two + other_entry.emi_three + other_entry.emi_four + other_entry.food + other_entry.rent + other_entry.creditcard_one + other_entry.creditcard_two + other_entry.shopping + other_entry.travel + other_entry.other_expenses %}
+                                    <small>Income: <span class="text-success">₹{{ "%.2f"|format(other_total_income) }}</span></small><br>
+                                    <small>Expenses: <span class="text-danger">₹{{ "%.2f"|format(other_total_expenses) }}</span></small><br>
+                                    <small>Savings: <span class="{% if other_total_income - other_total_expenses >= 0 %}text-success{% else %}text-danger{% endif %}">₹{{ "%.2f"|format(other_total_income - other_total_expenses) }}</span></small>
+                                </div>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center">
+                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No other entries found.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Real-time calculation for edit form
+document.addEventListener('DOMContentLoaded', function() {
+    const incomeInputs = ['salary', 'freelancing_one', 'freelancing_two'];
+    const expenseInputs = ['mobile_recharge', 'wifi', 'emi_one', 'emi_two', 'emi_three', 'emi_four', 'food', 'rent', 'creditcard_one', 'creditcard_two', 'shopping', 'travel', 'other_expenses'];
+    
+    function calculateTotals() {
+        let totalIncome = 0;
+        let totalExpenses = 0;
+        
+        incomeInputs.forEach(id => {
+            const value = parseFloat(document.getElementById(id).value) || 0;
+            totalIncome += value;
+        });
+        
+        expenseInputs.forEach(id => {
+            const value = parseFloat(document.getElementById(id).value) || 0;
+            totalExpenses += value;
+        });
+        
+        const netSavings = totalIncome - totalExpenses;
+        
+        document.getElementById('totalIncome').textContent = '₹' + totalIncome.toFixed(2);
+        document.getElementById('totalExpenses').textContent = '₹' + totalExpenses.toFixed(2);
+        document.getElementById('netSavings').textContent = '₹' + netSavings.toFixed(2);
+        
+        // Update colors
+        const savingsElement = document.getElementById('netSavings');
+        savingsElement.className = netSavings >= 0 ? 'text-success' : 'text-danger';
+    }
+    
+    // Add event listeners to all input fields
+    [...incomeInputs, ...expenseInputs].forEach(id => {
+        document.getElementById(id).addEventListener('input', calculateTotals);
+    });
+    
+    // Initial calculation
+    calculateTotals();
+});
+</script>
+{% endblock %}
