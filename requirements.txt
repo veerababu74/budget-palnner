@@ -9,3 +9,4 @@ aiofiles
 pandas
 openpyxl
 psycopg2-binary
+asgiref
